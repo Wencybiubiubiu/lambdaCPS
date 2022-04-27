@@ -14,8 +14,17 @@ class WrapperBase(gym.Wrapper):
     def get_state(self) -> np.ndarray:
         pass
 
+    @abstractmethod
+    def set_param(self, param_name: str, param_value: float):
+        pass
+
+    @abstractmethod
+    def get_param(self, param_name: str) -> float:
+        pass
+
 
 class Pendulum(WrapperBase):
+
     def __init__(self):
         super(Pendulum, self).__init__(PendulumEnv())
 
@@ -24,3 +33,9 @@ class Pendulum(WrapperBase):
 
     def get_state(self) -> np.ndarray:
         return self.env.state
+
+    def set_param(self, param_name: str, param_value: float):
+        setattr(self.env, param_name, param_value)
+
+    def get_param(self, param_name: str) -> float:
+        return getattr(self.env, param_name)
