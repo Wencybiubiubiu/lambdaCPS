@@ -34,7 +34,7 @@ class WrapperBase(gym.Wrapper):
                      lr: float = 1e-3,
                      n_opt_iter: int = 100) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Sample-based linearizing. This function is heavy and not suitable running online.
+        Sample-based linearizing. This function is heavy and not suitable to run online.
         :param state: state linearize around
         :param traj_len: trajectory length
         :param n_traj: total sampled trajectory number
