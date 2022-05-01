@@ -8,12 +8,12 @@ from os import path
 class PendulumEnv(gym.Env):
     metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 30}
 
-    def __init__(self, g=10.0):
+    def __init__(self, pendulum_mass, g=10.0):
         self.max_speed = 8
         self.max_torque = 1.0
         self.dt = 0.05
         self.g = g
-        self.m = 0.1
+        self.m = pendulum_mass
         self.l = 1.0
         self.viewer = None
 
@@ -46,6 +46,7 @@ class PendulumEnv(gym.Env):
         newth = th + newthdot * dt
 
         self.state = np.array([newth, newthdot])
+
         return self._get_obs(), -costs, False, {}
 
     def reset(self):

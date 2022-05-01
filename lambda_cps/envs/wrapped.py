@@ -87,8 +87,8 @@ class WrapperBase(gym.Wrapper):
 
 class Pendulum(WrapperBase):
 
-    def __init__(self):
-        super(Pendulum, self).__init__(PendulumEnv())
+    def __init__(self, pendulum_mass):
+        super(Pendulum, self).__init__(PendulumEnv(pendulum_mass))
 
     def set_state(self, state: np.ndarray):
         self.env.state = state
