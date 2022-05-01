@@ -10,10 +10,10 @@ class PendulumEnv(gym.Env):
 
     def __init__(self, g=10.0):
         self.max_speed = 8
-        self.max_torque = 2.0
+        self.max_torque = 1.0
         self.dt = 0.05
         self.g = g
-        self.m = 1.0
+        self.m = 0.1
         self.l = 1.0
         self.viewer = None
 
@@ -49,7 +49,7 @@ class PendulumEnv(gym.Env):
         return self._get_obs(), -costs, False, {}
 
     def reset(self):
-        high = np.array([np.pi, 1])
+        high = np.array([np.pi / 4, 0.1])
         self.state = self.np_random.uniform(low=-high, high=high)
         self.last_u = None
         return self._get_obs()

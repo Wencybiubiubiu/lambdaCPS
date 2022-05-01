@@ -26,7 +26,8 @@ class WrapperBase(gym.Wrapper):
     def get_param(self, param_name: str) -> float:
         pass
 
-    def linearize_at(self, state: np.ndarray,
+    def linearize_at(self,
+                     state: np.ndarray,
                      traj_len: int = 10,
                      n_traj: int = 100,
                      step_size: float = 0.05,
