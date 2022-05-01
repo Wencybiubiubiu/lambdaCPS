@@ -4,6 +4,8 @@ import lambda_cps
 
 DATA_ROOT = dirname(dirname(abspath(lambda_cps.__file__))) + "/data"
 
+DEFAULT_DEVICE = "cpu"
+
 
 def exp_res_path(exp_exe_path: str):
     """experiments results path"""
