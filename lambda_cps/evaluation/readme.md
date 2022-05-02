@@ -1,4 +1,5 @@
-Pipeline: evaluator (check pre_condition -> controller -> check post_condition) -> training
+## Pipeline: 
+evaluator (check pre_condition -> controller -> check post_condition) -> training
 
 - Provided info:
     - Pre-condition theta: range of angle
@@ -17,3 +18,19 @@ Pipeline: evaluator (check pre_condition -> controller -> check post_condition) 
     - fit_model folder:
         - model (mass_of_stick, [s_1,s_2,s_3,...,s_n]) = ( f(mass) -> score ), (mass_of_stick, [s_1,s_2,s_3,...,s_n]) is a single sample
     - a main file to execute the complete pipeline
+
+## Execution
+
+```
+lambdaCPS/lambda_cps/evaluation/sampling$ python sampling_experiment.py
+```
+
+- Parameters embedded:
+  - num_of_designs 200
+  - num_of_sample_for_each_design 20
+  - evaluation_time_for_each_sample 100
+- Model output:
+  - Mean squared error: 120.83
+  - Loss: 120.83
+- Execution time: 227.99576878547668 seconds
+- Figures in evaluation/sampling/image/MLPR folder

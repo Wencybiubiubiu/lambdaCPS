@@ -23,7 +23,8 @@ class ConditionProcessor:
         return new_state
 
     # It will return absolute value of difference between result_state to its nearest range
-    def check_post_condition(self, result_state):
+    # This is a deprecated old version.
+    def old_check_post_condition(self, result_state):
         check_low = np.abs(self.post_condition[self.LOW] - result_state)
         check_high = np.abs(self.post_condition[self.HIGH] - result_state)
 
@@ -31,30 +32,25 @@ class ConditionProcessor:
 
         return max_diff
 
+    # It will return absolute value of difference between result_state to its nearest range
+    def check_post_condition(self, result_state):
 
-def test_condition_processor(num_of_sampling_in_each_design):
-    pre_condition_high = np.array([-np.pi / 2, 0.1])
-    pre_condition_low = -pre_condition_high
-    pre_condition = [pre_condition_low, pre_condition_high]
-    post_condition = pre_condition
+        # set absolute difference as score of speed
+        check_low = np.abs(self.post_condition[self.LOW] - result_state)
+        check_high = np.abs(self.post_condition[self.HIGH] - result_state)
 
-    output_sample_vector = []
+        max_diff = np.array([check_low, check_high]).min(axis=0)
 
-    cond = ConditionProcessor(pre_condition, post_condition)
-    for i in range(num_of_sampling_in_each_design):
-        valid_new_state = cond.initial_state_generator()
-
-        # evaluate process
-        # There should be a evaluation function that return the result state
-        # To test functionality of condition processor, we temporarily use random pre_condition to check
-
-        max_diff = cond.check_post_condition(valid_new_state)
-
-        output_sample_vector += [[valid_new_state, max_diff]]
-
-    for i in output_sample_vector:
-        print(i)
-    return output_sample_vector
+        # get score of angle
+        center = (self.post_condition[self.LOW] + self.post_condition[self.HIGH]) / 2
+        if result_state[0] < center[0]:
+            angle_diff = np.abs(center[0]-result_state[0])
+        else:
+            angle_diff = np.abs(result_state[0]-center[0])
 
 
-# test_condition_processor(10)
+        score = (np.pi-angle_diff)/np.pi * 100
+
+        max_diff[0] = score
+
+        return max_diff

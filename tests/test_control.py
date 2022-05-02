@@ -7,7 +7,7 @@ from lambda_cps.evaluation.control.random_shooting import RandomShootingControll
 from lambda_cps.envs import Pendulum
 
 def test_random_shooting():
-    env = Pendulum(0.1)
+    env = Pendulum()
     env_model = copy.deepcopy(env)
     rs_controller = RandomShootingController(env_model)
 
@@ -24,7 +24,7 @@ def test_random_shooting():
 
 
 def test_lqr():
-    env = Pendulum(0.1)
+    env = Pendulum()
     env.reset()
     #print(env.get_state())
 

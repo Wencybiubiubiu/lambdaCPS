@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
-from sklearn import datasets
 from sklearn.metrics import mean_squared_error, r2_score
 
 
@@ -13,6 +12,7 @@ class LinearModel:
         self.X = X
         self.y = y
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        self.image_dir = 'image/LR/'
 
     def train(self):
         self.reg = LinearRegression().fit(self.X_train, self.y_train)
@@ -27,6 +27,16 @@ class LinearModel:
         # return predict_result
 
         return self.reg.predict(np.array(input_x))
+
+    def save_plot(self, x_data, y_data, y_predict, filename):
+
+        plt.scatter(np.array(x_data)[:, 0], y_data, color="black")
+        plt.plot(np.array(x_data)[:, 0], y_predict, color="blue", linewidth=3)
+        plt.xticks(())
+        plt.yticks(())
+        plt.savefig(self.image_dir + filename + '.png')
+        plt.close()
+
 
     def fit(self):
         self.train()
@@ -45,23 +55,6 @@ class LinearModel:
         # The coefficient of determination: 1 is perfect prediction
         print("Coefficient of determination: %.2f" % r2_score(self.y_test, prediction_y_test))
 
-        plt.scatter(np.array(self.X_train)[:, 0], self.y_train, color="black")
-        plt.plot(np.array(self.X_train)[:, 0], prediction_y_train, color="blue", linewidth=3)
-        plt.xticks(())
-        plt.yticks(())
-        plt.savefig('image/train_figure.png')
-        plt.close()
-
-        plt.scatter(np.array(self.X_test)[:, 0], self.y_test, color="black")
-        plt.plot(np.array(self.X_test)[:, 0], prediction_y_test, color="blue", linewidth=3)
-        plt.xticks(())
-        plt.yticks(())
-        plt.savefig('image/test_figure.png')
-        plt.close()
-
-        plt.scatter(np.array(self.X)[:, 0], self.y, color="black")
-        plt.plot(np.array(self.X)[:, 0], prediction_all, color="blue", linewidth=3)
-        plt.xticks(())
-        plt.yticks(())
-        plt.savefig('image/all_figure.png')
-        plt.close()
+        self.save_plot(self.X_train, self.y_train, prediction_y_train, 'train_figure')
+        self.save_plot(self.X_test, self.y_test, prediction_y_test, 'test_figure')
+        self.save_plot(self.X, self.y, prediction_all, 'all_figure')

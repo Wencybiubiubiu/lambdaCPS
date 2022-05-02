@@ -1,21 +1,10 @@
 import numpy as np
+import time
 from lambda_cps.evaluation.sampling.sampler import Sampler
 from lambda_cps.evaluation.fitting.linear_regression import LinearModel
-
-
-def flatten_the_samples(raw_data):
-    return raw_data.reshape(raw_data.shape[0]*raw_data.shape[1], -1)
-
-
-def average_the_samples(raw_data):
-    output = []
-    for i in raw_data:
-        output.append(np.mean(i, axis=0))
-    return output
-
+from lambda_cps.evaluation.fitting.MLP_regression import MLPModel
 
 def split_X_y(raw_data):
-
     X = []
     y = []
     for i in raw_data:
@@ -24,40 +13,56 @@ def split_X_y(raw_data):
     return X, y
 
 
-def experiment():
-
-    pre_condition_high = np.array([-np.pi / 1, 0.1])
-    pre_condition_low = pre_condition_high
+def experiment(data_mode, learning_model, num_of_designs, num_of_sample_for_each_design,
+               evaluation_time_for_each_sample):
+    pre_condition_high = np.array([-np.pi / 2, 0.1])
+    pre_condition_low = np.array([np.pi / 2, 0.1])
     pre_condition = [pre_condition_low, pre_condition_high]
-    post_condition_high = np.array([-np.pi / 2, 0.1])
-    post_condition_low = -pre_condition_high
+    post_condition_high = np.array([-np.pi / 4, 0])
+    post_condition_low = np.array([np.pi / 4, 1])
     post_condition = [post_condition_low, post_condition_high]
 
-    num_of_sample_for_each_design = 5
-    evaluation_time_for_each_sample = 100
-    num_of_designs = 20
-
-    test_sampling = Sampler(pre_condition, post_condition, num_of_sample_for_each_design,
-                            evaluation_time_for_each_sample, num_of_designs).sample()
+    new_sampler = Sampler(pre_condition, post_condition, num_of_sample_for_each_design,
+                          evaluation_time_for_each_sample, num_of_designs)
+    test_sampling = new_sampler.sample()
 
     # To test, we just need angle information
     # process the data
+    generated_samples = new_sampler.process_data(test_sampling, data_mode)
 
-    angle_only_data = []
-    for i in test_sampling:
-        temp = []
-        for j in range(0, len(i[1])):
-            temp.append([i[0], i[1][j][0][0], i[1][j][1][0]])
-        angle_only_data.append(temp)
+    x, y = split_X_y(generated_samples)
+
+    print('num_of_designs', num_of_designs)
+    print('num_of_sample_for_each_design', num_of_sample_for_each_design)
+    print('evaluation_time_for_each_sample', evaluation_time_for_each_sample)
+
+    if learning_model == 'LR':
+        LinearModel(x, y).fit()
+    elif learning_model == 'MLPR':
+        MLPModel(x, y).fit()
+    else:
+        # default is linear regression model
+        LinearModel(x, y).fit()
 
 
-    angle_only_data = np.array(angle_only_data)
-    flattened_sample = flatten_the_samples(angle_only_data)
-    # averaged_sample = average_the_samples(angle_only_data)
 
-    x, y = split_X_y(flattened_sample)
+st = time.time()
 
-    LinearModel(x, y).fit()
+# Data processing mode:
+# 1. single_trajectory: each trajectory of one-time simulation is a sample. A design may have several samples
+# 2. average: each design will only have one sample which is the average of its all trajectories
+# 3. average_and_only_mass_and_score: make the data one-to-one, [mass, score]
+# Learning model:
+# 1. LR: linear regression model.
+# 2. MLPR: multi-layer perceptron regression model
 
+processing_mode = 'average_and_only_mass_and_score'
+learning_model_mode = 'MLPR'
+numOfDesigns = 200
+numOfSimulationsForEachDesign = 20
+numOfStepsForEachDesign = 100
+experiment(processing_mode, learning_model_mode, numOfDesigns, numOfSimulationsForEachDesign, numOfStepsForEachDesign)
 
-experiment()
+et = time.time()
+elapsed_time = et - st
+print('Execution time:', elapsed_time, 'seconds')
