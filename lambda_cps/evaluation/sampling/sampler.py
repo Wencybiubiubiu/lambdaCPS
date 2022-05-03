@@ -1,7 +1,7 @@
 # evaluator (number_of_samples_of_this_design, current_design, pre-condition theta, post-condition alpha)
 #   = [s_1,s_2,s_3,...,s_n], n is the number of samples for current design
 
-from condition import ConditionProcessor
+from lambda_cps.evaluation.sampling.condition import ConditionProcessor
 import numpy as np
 import random
 

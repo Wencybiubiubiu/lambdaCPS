@@ -42,7 +42,7 @@ class ConditionProcessor:
         max_diff = np.array([check_low, check_high]).min(axis=0)
 
         # get score of angle
-        center = (self.post_condition[self.LOW] + self.post_condition[self.HIGH]) / 2
+        center = (np.array(self.post_condition[self.LOW]) + np.array(self.post_condition[self.HIGH])) / 2
         if result_state[0] < center[0]:
             angle_diff = np.abs(center[0]-result_state[0])
         else:

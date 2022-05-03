@@ -22,15 +22,17 @@ evaluator (check pre_condition -> controller -> check post_condition) -> trainin
 ## Execution
 
 ```
-lambdaCPS/lambda_cps/evaluation/sampling$ python sampling_experiment.py
+lambdaCPS$ python tests/test_sampling_experiment.py
 ```
 
 - Parameters embedded:
-  - num_of_designs 200
+  - num_of_designs 100
   - num_of_sample_for_each_design 20
   - evaluation_time_for_each_sample 100
+  - pre_condition = [[np.pi / 2, 0.1], [-np.pi / 2, 0.1]]
+  - post_condition = [[np.pi / 4, -np.inf], [-np.pi / 4, np.inf]]
 - Model output:
-  - Mean squared error: 120.83
-  - Loss: 120.83
-- Execution time: 227.99576878547668 seconds
-- Figures in evaluation/sampling/image/MLPR folder
+  - Mean squared error: 181.69
+  - Loss: 65.62
+- Execution time: 101.90922284126282 seconds
+- Figures in data/res/sampling_image/MLPR folder
