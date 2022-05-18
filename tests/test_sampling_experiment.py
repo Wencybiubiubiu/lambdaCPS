@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from lambda_cps.evaluation.sampling.sampling_experiment import SamplerExperiment
+from lambda_cps.evaluation.simulation_sampling.sampling_experiment import SimulationSamplerExperiment
 
 # Data processing mode:
 # 1. single_trajectory: each trajectory of one-time simulation is a sample. A design may have several samples
@@ -20,8 +20,8 @@ def test_sampling_exp_LR():
     num_of_simulations_for_each_design = 20
     num_of_steps_for_each_design = 100
     pre_condition = [[-np.pi / 2, 0.1], [np.pi / 2, 0.1]]
-    post_condition = [[-np.pi / 4, -np.inf], [np.pi / 4, np.inf]]
-    SamplerExperiment(processing_mode, learning_model_mode, num_of_designs, num_of_simulations_for_each_design,
+    post_condition = [[-np.pi / 4, -100], [np.pi / 4, 100]]
+    SimulationSamplerExperiment(processing_mode, learning_model_mode, num_of_designs, num_of_simulations_for_each_design,
                       num_of_steps_for_each_design, pre_condition, post_condition)
 
     et = time.time()
@@ -40,7 +40,7 @@ def test_sampling_exp_MLPR():
     num_of_steps_for_each_design = 100
     pre_condition = [[-np.pi / 2, 0.1], [np.pi / 2, 0.1]]
     post_condition = [[-np.pi / 4, -np.inf], [np.pi / 4, np.inf]]
-    SamplerExperiment(processing_mode, learning_model_mode, num_of_designs, num_of_simulations_for_each_design,
+    SimulationSamplerExperiment(processing_mode, learning_model_mode, num_of_designs, num_of_simulations_for_each_design,
                       num_of_steps_for_each_design, pre_condition, post_condition)
 
     et = time.time()

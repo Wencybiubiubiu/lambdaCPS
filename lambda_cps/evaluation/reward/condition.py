@@ -33,24 +33,27 @@ class ConditionProcessor:
         return max_diff
 
     # It will return absolute value of difference between result_state to its nearest range
-    def check_post_condition(self, result_state):
+    def score_calculator(self, result_state):
 
         # set absolute difference as score of speed
         check_low = np.abs(self.post_condition[self.LOW] - result_state)
         check_high = np.abs(self.post_condition[self.HIGH] - result_state)
 
-        max_diff = np.array([check_low, check_high]).min(axis=0)
+        score = np.array([check_low, check_high]).min(axis=0)
 
-        # get score of angle
         center = (np.array(self.post_condition[self.LOW]) + np.array(self.post_condition[self.HIGH])) / 2
+        # get score of angle
         if result_state[0] < center[0]:
             angle_diff = np.abs(center[0]-result_state[0])
         else:
             angle_diff = np.abs(result_state[0]-center[0])
 
 
-        score = (np.pi-angle_diff)/np.pi * 100
+        angle_score = (np.pi-angle_diff)/np.pi * 100
 
-        max_diff[0] = score
+        speed_score = -np.abs(center[1]-result_state[1])
 
-        return max_diff
+        score[0] = angle_score
+        score[1] = speed_score
+
+        return score
