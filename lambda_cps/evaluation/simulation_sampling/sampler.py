@@ -41,5 +41,6 @@ class Sampler:
             output_sample_vector += [[valid_new_state, result_state]]
 
         # print(output_sample_vector)
+        return {'A':generated_design[0], 'D':generated_design[1], 'T':output_sample_vector}
         return [generated_design, output_sample_vector]
 

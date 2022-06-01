@@ -51,7 +51,7 @@ class ConditionProcessor:
 
         angle_score = (np.pi-angle_diff)/np.pi * 100
 
-        speed_score = -np.abs(center[1]-result_state[1])
+        speed_score = np.abs(center[1]-result_state[1])/self.post_condition[self.HIGH][1] * 100
 
         score[0] = angle_score
         score[1] = speed_score
