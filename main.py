@@ -48,7 +48,8 @@ class Pipeline(ParamName):
         new_controller = Controller()
 
         # Generating round (with a loop)
-
+        # Currently, it generates a list of designs and matching scores, and then they are used in GCN training.
+        # We should co-update RL model and GCN model, so we need to change it then.
         sampling_dataset = []
         for i in range(num_of_designs):
 
