@@ -47,6 +47,7 @@ class Pipeline(ParamName):
 
     def execute(self):
 
+        # training parameters
         num_of_designs = 300
         num_of_simulations_for_each_design = 10
         num_of_steps_for_each_design = 10
