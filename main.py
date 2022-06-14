@@ -5,7 +5,6 @@ from lambda_cps.evaluation.simulation_sampling.sampler import Sampler
 from lambda_cps.evaluation.fitting.GNN import ParamName, GCNDataWrapper, GCNModel
 from lambda_cps.design_generator.generator import DesignGenerator
 
-
 class Pipeline(ParamName):
 
     def __init__(self):
@@ -40,7 +39,7 @@ class Pipeline(ParamName):
         # Elaborated in the future
         init_sketch = None
         init_xml_file = None
-        production_rules = None  # May be read from a file and parsed into some formats
+        production_rules = None
 
         # some tools
         new_sampler = Sampler(num_of_simulations_for_each_design, num_of_steps_for_each_design)
