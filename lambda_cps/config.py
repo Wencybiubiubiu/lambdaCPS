@@ -2,7 +2,9 @@ import os
 from os.path import dirname, abspath
 import lambda_cps
 
-DATA_ROOT = dirname(dirname(abspath(lambda_cps.__file__))) + "/data"
+ROOT = dirname(dirname(abspath(lambda_cps.__file__)))
+DATA_ROOT = f"{ROOT}/data"
+ROBOT_MODEL = f"{ROOT}/lambda_cps/envs/assets"
 
 DEFAULT_DEVICE = "cpu"
 
