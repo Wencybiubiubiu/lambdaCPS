@@ -5,6 +5,7 @@ from lambda_cps.evaluation.simulation_sampling.sampler import Sampler
 from lambda_cps.evaluation.fitting.GNN import ParamName, GCNDataWrapper, GCNModel
 from lambda_cps.design_generator.generator import DesignGenerator
 
+
 class Pipeline(ParamName):
 
     def __init__(self):
