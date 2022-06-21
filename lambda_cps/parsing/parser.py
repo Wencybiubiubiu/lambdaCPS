@@ -1,5 +1,6 @@
 import pydot
 import networkx
+import graphviz
 
 
 class RuleParam:
@@ -37,16 +38,17 @@ class Parser(RuleParam):
         # print(a.get_attributes())
 
         self.rule_dict = {}
+        newline_node = self.rule_set_of_dot_format[0].get_subgraph('R')[0].get_node_list()[-1].get_name()
         for each_rule in self.rule_set_of_dot_format:
             rule_name = each_rule.get_name()
 
             left_rule = each_rule.get_subgraph('L')[0]
-            left_rule.del_node(self.rule_set_of_dot_format[0].get_subgraph('R')[0].get_node_list()[-1].get_name())
+            left_rule.del_node(newline_node)
             left_rule_node_list = left_rule.get_node_list()
             left_rule_edge_list = left_rule.get_edge_list()
 
             right_rule = each_rule.get_subgraph('R')[0]
-            right_rule.del_node(self.rule_set_of_dot_format[0].get_subgraph('R')[0].get_node_list()[-1].get_name())
+            right_rule.del_node(newline_node)
             right_rule_node_list = right_rule.get_node_list()
             right_rule_edge_list = right_rule.get_edge_list()
 
@@ -98,27 +100,39 @@ class Parser(RuleParam):
         empty_sketch = self.rule_dict[self.init_sketch_tag]
         right_side = empty_sketch[self.RIGHT_GRAPH_TAG]
 
+        # print(right_side)
+
+        new_design = pydot.Dot('new-design', graph_type='digraph', bgcolor="yellow")
+
         replace_name_dict = {}
 
         for i in range(len(empty_sketch[self.RIGHT_RULE_NODE_TAG])):
             orig_name = empty_sketch[self.RIGHT_RULE_NODE_TAG][i].get_name()
+            orig_label = right_side.get_node(orig_name)[0].get_attributes()[self.label].replace('\"', '')
             new_name = 'node_' + str(i)
-            right_side.get_node(orig_name)[0].set_name(new_name)
+            # right_side.get_node(orig_name)[0].set_name(new_name)
+            new_design.add_node(pydot.Node(new_name, label=orig_label))
             replace_name_dict[orig_name] = new_name
+            # print(new_name, orig_name, orig_label)
 
         # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][0])
         for i in range(len(empty_sketch[self.RIGHT_RULE_EDGE_TAG])):
             source = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_source()
             des = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_destination()
             edge_attr = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_attributes()
+            edge_label = edge_attr[self.label].replace('\"', '')
 
-            right_side.del_edge(source, des)
-            right_side.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_attr[self.label]))
-            # print(source)
+            # right_side.del_edge(source, des)
+            # right_side.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_attr[self.label]))
+            new_design.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_label))
 
-        empty_sketch[self.RIGHT_RULE_EDGE_TAG] = right_side.get_edge_list()
+
+        # empty_sketch[self.RIGHT_RULE_EDGE_TAG] = right_side.get_edge_list()
         # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][0])
         # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][1])
         # exit()
-        return self.rule_dict[self.init_sketch_tag], [self.init_sketch_tag]
+
+        # return self.rule_dict[self.init_sketch_tag], [self.init_sketch_tag]
+
+        return new_design, [self.init_sketch_tag]
 
