@@ -15,13 +15,13 @@ digraph make_robot {
 digraph append_body {
   subgraph L {
     tail [require_label="tail"];
-    parent -> tail [id="parent_edges"];
+    parent -> tail [label="parent_edges"];
   }
 
   subgraph R {
     tail [label="tail"];
     body [label="body"];
-    parent -> body [id="parent_edges"];
+    parent -> body [label="parent_edges"];
     body -> tail [label="body_joint"];
   }
 }
@@ -32,8 +32,8 @@ digraph make_body_with_legs {
   }
 
   subgraph R {
-    body [shape=capsule, length=0.15, radius=0.045, density=3.0];
-    limb_mount [shape=capsule, length=0.1, radius=0.025];
+    body [label="body", shape=capsule, length=0.15, radius=0.045, density=3.0];
+    limb_mount [label="limb_mount", shape=capsule, length=0.1, radius=0.025];
     limb_link [label="limb_link"];
     limb [label="limb"];
     body -> limb_mount [type=fixed, offset=0.5, axis_angle="0 1 0 90"];
@@ -48,7 +48,7 @@ digraph make_body_without_legs {
   }
 
   subgraph R {
-    body [shape=capsule, length=0.15, radius=0.045, density=3.0];
+    body [label="body", shape=capsule, length=0.15, radius=0.045, density=3.0];
   }
 }
 
@@ -105,7 +105,7 @@ digraph make_normal_limb_link {
   }
 
   subgraph R {
-    limb_link [shape=capsule, length=0.1, radius=0.025];
+    limb_link [label="limb_link", shape=capsule, length=0.1, radius=0.025];
   }
 }
 
@@ -115,7 +115,7 @@ digraph make_long_limb_link {
   }
 
   subgraph R {
-    limb_link [shape=capsule, length=0.15, radius=0.025];
+    limb_link [label="limb_link", shape=capsule, length=0.15, radius=0.025];
   }
 }
 

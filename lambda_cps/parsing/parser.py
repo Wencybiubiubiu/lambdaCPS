@@ -26,6 +26,7 @@ class RuleParam:
 
         self.require_label = 'require_label'
         self.label = 'label'
+        self.node_count = 'count'
 
 
 class Parser(RuleParam):
@@ -102,7 +103,7 @@ class Parser(RuleParam):
 
         # print(right_side)
 
-        new_design = pydot.Dot('new-design', graph_type='digraph', bgcolor="yellow")
+        new_design = pydot.Dot('new-design', graph_type='digraph')
 
         replace_name_dict = {}
 

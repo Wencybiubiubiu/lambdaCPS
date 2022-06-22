@@ -57,6 +57,7 @@ class DesignGenerator(RuleParam):
         ax1 = plt.subplot(111)
         ax1.margins(0.3)
         plt.savefig(filename + ".png")
+        plt.close()
 
         return
 
@@ -69,8 +70,7 @@ class DesignGenerator(RuleParam):
         prev_graph_edge_list = prev_graph.get_edge_list()
         prev_graph_node_list = prev_graph.get_node_list()
 
-        print(prev_graph)
-        self.generate_networkx_image(prev_graph,"1")
+        # print(prev_graph)
         # exit()
 
         node_name_to_label_dict = {}
@@ -89,12 +89,16 @@ class DesignGenerator(RuleParam):
             orig_node_list = cur_rule[self.LEFT_RULE_NODE_TAG]
 
             if len(orig_edge_list) == 0:
-                # print(key, orig_node_list)
                 replaced_node = orig_node_list[0]
+
+                # print(cur_rule_name, replaced_node)
 
                 for i in range(len(prev_graph_node_list)):
                     target_node = prev_graph_node_list[i]
-                    if target_node.get_attributes()[self.label] == replaced_node.get_attributes()[self.require_label]:
+                    target_node_label = target_node.get_attributes()[self.label].replace('\'','').replace('\"','')
+                    replaced_node_label = replaced_node.get_attributes()[self.require_label].replace('\'','').replace('\"','')
+                    # print(target_node.get_attributes())
+                    if target_node_label == replaced_node_label:
                         possible_actions.append([self.node_to_, cur_rule_name, target_node.get_name()])
                         # print(output[-1])
 
@@ -120,6 +124,7 @@ class DesignGenerator(RuleParam):
                     else:
                         # print(graph_info)
                         # print(graph_info.get_node("body"))
+                        # print(node_name_to_label_dict)
                         # print(target_edge.get_destination(), node_name_to_label_dict[target_edge.get_destination()])
                         if replaced_edge_source == self.parent_node and replaced_edge_des == self.child_node:
                             possible_actions.append([self.edge_to_both, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
@@ -137,12 +142,18 @@ class DesignGenerator(RuleParam):
 
     def pick_action(self, possible_action_list):
 
+        # print(possible_action_list[1])
+        # return possible_action_list[1]
+
         return possible_action_list[random.randint(0, len(possible_action_list)-1)]
 
-    def take_action(self, prev_graph, node_name_dict, picked_action):
+    def take_action(self, prev_graph, node_name_dict, picked_action, node_count):
 
         cur_graph = prev_graph
+        temp_orig_name_2_new_name_dict = {}
+        cur_node_count = node_count
 
+        print(prev_graph)
         print('picked_action', picked_action)
 
         # exit()
@@ -151,30 +162,125 @@ class DesignGenerator(RuleParam):
         edit_rule = picked_action[1]
         right_hand_side_replacement = self.production_rules_dict[edit_rule][self.RIGHT_GRAPH_TAG]
         rhs_graph_edge_list = self.production_rules_dict[edit_rule][self.RIGHT_RULE_EDGE_TAG]
+        lhs_graph_edge_list = self.production_rules_dict[edit_rule][self.LEFT_RULE_EDGE_TAG]
         rhs_graph_node_list = self.production_rules_dict[edit_rule][self.RIGHT_RULE_NODE_TAG]
 
 
-        for i in rhs_graph_node_list:
-            # graph_info.add_node(i)
-            print(i)
 
-            orig_name = i.get_name()
-            if orig_name != 'child' and orig_name != 'parent':
-                orig_label = i.get_attributes()[self.label].replace('\"', '')
-                new_name = 'node_' + str(len(node_name_dict))
-                cur_graph.add_node(pydot.Node(new_name, label=orig_label))
-                node_name_dict[orig_name] = new_name
+        if edit_method != self.node_to_:
 
-                print(new_name, orig_name, orig_label)
+            for i in rhs_graph_node_list:
+                # graph_info.add_node(i)
+                # print(i)
+                # print(node_name_dict)
+                orig_name = i.get_name()
+                if orig_name != 'child' and orig_name != 'parent':
+                    orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
+                    new_name = 'node_' + str(cur_node_count)
+                    # print(new_name,cur_node_count)
+                    cur_node_count = cur_node_count + 1
+                    cur_graph.add_node(pydot.Node(new_name, label=orig_label))
+                    node_name_dict[new_name] = orig_name
+                    temp_orig_name_2_new_name_dict[orig_name] = new_name
 
-        exit()
+                # print(node_name_dict, new_name, orig_name, orig_label)
 
-        for i in rhs_graph_edge_list:
-            cur_graph.add_edge(i)
+        # exit()
+
+        # print(node_name_dict)
+
+            # This is the hard code to handle terminal node
+            # Notice: It should be elaborated in the future !!!!
+            # ????????
+            if len(rhs_graph_edge_list) > 0:
+                cur_graph.del_edge(picked_action[2], picked_action[3])
+
+                if edit_method == self.edge_to_both:
+                    cur_graph.del_node(picked_action[2])
+                    cur_graph.del_node(picked_action[3])
+                elif edit_method == self.edge_to_child:
+                    cur_graph.del_node(picked_action[3])
+                elif edit_method == self.edge_from_parent:
+                    cur_graph.del_node(picked_action[2])
+
+            for i in rhs_graph_edge_list:
+                orig_edge_source = i.get_source()
+                orig_edge_des = i.get_destination()
+                edge_attr = i.get_attributes()
+                edge_label = ''
+                if self.label in edge_attr:
+                    edge_label = edge_attr[self.label].replace('\"', '').replace('\'', '')
+
+                if orig_edge_source == 'parent' and orig_edge_des == 'child':
+                    orig_edge_source = picked_action[2]
+                    orig_edge_des = picked_action[3]
+                elif orig_edge_source == 'parent':
+                    orig_edge_source = picked_action[2]
+                    orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
+                elif orig_edge_des == 'child':
+                    orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
+                    orig_edge_des = picked_action[3]
+                else:
+                    orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
+                    orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
+
+                cur_graph.add_edge(pydot.Edge(orig_edge_source, orig_edge_des, label=edge_label))
+
+        else:
+
+            fixed_node_name = picked_action[2]
+            fixed_node_label = cur_graph.get_node(fixed_node_name)[0].get_attributes()[self.label]\
+                .replace('\"', '').replace('\'', '')
+            for i in rhs_graph_node_list:
+
+                orig_name = i.get_name()
+                if orig_name != 'child' and orig_name != 'parent':
+                    # print(i.get_attributes())
+                    orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
+                    if orig_label != fixed_node_label:
+                        new_name = 'node_' + str(cur_node_count)
+                        # print(new_name,cur_node_count)
+                        cur_node_count = cur_node_count + 1
+                        cur_graph.add_node(pydot.Node(new_name, label=orig_label))
+                        node_name_dict[new_name] = orig_name
+                        temp_orig_name_2_new_name_dict[orig_name] = new_name
+                    else:
+                        node_name_dict[fixed_node_name] = orig_name
+                        temp_orig_name_2_new_name_dict[orig_name] = fixed_node_name
+
+            for i in rhs_graph_edge_list:
+                orig_edge_source = i.get_source()
+                orig_edge_des = i.get_destination()
+                edge_attr = i.get_attributes()
+                edge_label = ''
+                if self.label in edge_attr:
+                    edge_label = edge_attr[self.label].replace('\"', '').replace('\'', '')
+
+                orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
+                orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
+
+                cur_graph.add_edge(pydot.Edge(orig_edge_source, orig_edge_des, label=edge_label))
 
         print(cur_graph)
 
-        return
+        return cur_graph, node_name_dict, cur_node_count
+
+    def get_a_new_design_with_max_steps(self, input_graph, max_steps):
+
+        cur_graph = input_graph
+
+        self.generate_networkx_image(cur_graph,"1")
+
+        node_count = len(input_graph.get_node_list())
+        for i in range(max_steps):
+            name_dict, action_list = self.get_all_possible_next_rules(cur_graph)
+            next_step = self.pick_action(action_list)
+            cur_graph, name_dict, node_count = self.take_action(cur_graph, name_dict, next_step, node_count)
+
+        # print(cur_graph)
+        self.generate_networkx_image(cur_graph, "2")
+        return cur_graph
+
 
     def get_all_possible_next_rules_old(self, prev_graph, prev_rule_list):
 
