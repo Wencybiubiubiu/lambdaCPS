@@ -1,6 +1,6 @@
 digraph make_robot {
   subgraph L {
-    pendulum [require_label="pendulum"];
+    reacher [require_label="reacher"];
   }
 
   subgraph R {
