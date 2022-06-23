@@ -28,8 +28,28 @@ class DesignGenerator(RuleParam):
             .replace(' ', '').replace(',', '_')
         self.new_folder = self.image_dir + self.execution_data_time + '/'
 
+        self.save_generating_process_flag = False
 
-    def generate_networkx_image(self, input_graph, filename):
+
+    def set_process_saving_flag(self):
+
+        self.save_generating_process_flag = True
+
+        os.makedirs(self.new_folder, exist_ok=True)
+
+
+    def generate_networkx_image(self, input_graph, cur_rule, filepath, filename):
+
+        fig = plt.figure(figsize=(12, 12))
+        fig.suptitle('Generate the bottom design with rule: ' + cur_rule, fontsize=20)
+        ax1 = plt.subplot(2, 1, 2)
+        ax2 = plt.subplot(2, 2, 1)
+        ax3 = plt.subplot(2, 2, 2)
+        ax1.set_title('Generated graph', fontsize=20)
+        ax2.set_title('Left side rule', fontsize=20)
+        ax3.set_title('Right side rule', fontsize=20 )
+        # ax3 = plt.subplot(2, 3, 3)
+        ax = [ax1, ax2, ax3]
 
         pink_color = '#F2A7C6'
         blue_color = '#0E76D2'
@@ -37,10 +57,13 @@ class DesignGenerator(RuleParam):
         attr_text_offset = 0.08
         margin_offset = 5
 
+
         my_networkx_graph = nx.drawing.nx_pydot.from_pydot(input_graph)
         labels = nx.get_node_attributes(my_networkx_graph, self.label)
         pos_nodes = nx.spring_layout(my_networkx_graph)
-        nx.draw(my_networkx_graph, pos_nodes, with_labels=True, node_color=pink_color, node_size=node_size)
+
+        # nx.draw(my_networkx_graph, pos_nodes, with_labels=True, node_color=pink_color, node_size=node_size, ax=ax[0])
+        nx.draw(my_networkx_graph, pos_nodes, with_labels=True, node_color=pink_color, ax=ax[0])
 
         pos_attrs = {}
         for node, coords in pos_nodes.items():
@@ -50,13 +73,28 @@ class DesignGenerator(RuleParam):
         for node, attr in labels.items():
             custom_node_attrs[node] = attr
 
-        nx.draw_networkx_labels(my_networkx_graph, pos_attrs, labels=custom_node_attrs, font_color=blue_color)
+        edge_labels = {}
+        for u, v, data in my_networkx_graph.edges(data=True):
+            edge_labels[u, v] = data[self.label]
+
+        nx.draw_networkx_labels(my_networkx_graph, pos_attrs, labels=custom_node_attrs, font_color=blue_color, ax=ax[0])
+
+        # plt.subplots_adjust(left=margin_offset + 0.1, right=margin_offset + 0.9, top=margin_offset + 0.6,
+        #                    bottom=margin_offset + 0.4)
+        # ax1 = plt.subplot(111)
+        # ax1.margins(0.3)
+        #
+        # plt.plot()
+
+        if cur_rule is not None:
+            left_rule_graph = nx.drawing.nx_pydot.from_pydot(self.production_rules_dict[cur_rule][self.LEFT_GRAPH_TAG])
+            right_rule_graph = nx.drawing.nx_pydot.from_pydot(self.production_rules_dict[cur_rule][self.RIGHT_GRAPH_TAG])
+
+            nx.draw(left_rule_graph, nx.spring_layout(left_rule_graph), with_labels=True, ax=ax[1])
+            nx.draw(right_rule_graph, nx.spring_layout(right_rule_graph), with_labels=True, ax=ax[2])
+
         plt.plot()
-        plt.subplots_adjust(left=margin_offset + 0.1, right=margin_offset + 0.9, top=margin_offset + 0.6,
-                             bottom=margin_offset + 0.4)
-        ax1 = plt.subplot(111)
-        ax1.margins(0.3)
-        plt.savefig(filename + ".png")
+        plt.savefig(filepath + filename + ".png")
         plt.close()
 
         return
@@ -135,7 +173,7 @@ class DesignGenerator(RuleParam):
                                 replaced_edge_source == node_name_to_label_dict[target_edge.get_source()]:
                             possible_actions.append([self.edge_from_parent, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
 
-        print('possible_actions', possible_actions)
+        # print('possible_actions', possible_actions)
         # exit()
 
         return node_name_to_label_dict, possible_actions
@@ -153,8 +191,8 @@ class DesignGenerator(RuleParam):
         temp_orig_name_2_new_name_dict = {}
         cur_node_count = node_count
 
-        print(prev_graph)
-        print('picked_action', picked_action)
+        # print(prev_graph)
+        # print('picked_action', picked_action)
 
         # exit()
 
@@ -176,7 +214,7 @@ class DesignGenerator(RuleParam):
                 orig_name = i.get_name()
                 if orig_name != 'child' and orig_name != 'parent':
                     orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
-                    new_name = 'node_' + str(cur_node_count)
+                    new_name = self.create_new_node_name(cur_node_count)
                     # print(new_name,cur_node_count)
                     cur_node_count = cur_node_count + 1
                     cur_graph.add_node(pydot.Node(new_name, label=orig_label))
@@ -238,7 +276,7 @@ class DesignGenerator(RuleParam):
                     # print(i.get_attributes())
                     orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
                     if orig_label != fixed_node_label:
-                        new_name = 'node_' + str(cur_node_count)
+                        new_name = self.create_new_node_name(cur_node_count)
                         # print(new_name,cur_node_count)
                         cur_node_count = cur_node_count + 1
                         cur_graph.add_node(pydot.Node(new_name, label=orig_label))
@@ -261,7 +299,7 @@ class DesignGenerator(RuleParam):
 
                 cur_graph.add_edge(pydot.Edge(orig_edge_source, orig_edge_des, label=edge_label))
 
-        print(cur_graph)
+        # print(cur_graph)
 
         return cur_graph, node_name_dict, cur_node_count
 
@@ -269,7 +307,8 @@ class DesignGenerator(RuleParam):
 
         cur_graph = input_graph
 
-        self.generate_networkx_image(cur_graph,"1")
+        if self.save_generating_process_flag:
+            self.generate_networkx_image(cur_graph, self.init_sketch_tag, self.new_folder, "0")
 
         node_count = len(input_graph.get_node_list())
         for i in range(max_steps):
@@ -277,54 +316,50 @@ class DesignGenerator(RuleParam):
             next_step = self.pick_action(action_list)
             cur_graph, name_dict, node_count = self.take_action(cur_graph, name_dict, next_step, node_count)
 
-        # print(cur_graph)
-        self.generate_networkx_image(cur_graph, "2")
+            if self.save_generating_process_flag:
+                self.generate_networkx_image(cur_graph, next_step[1], self.new_folder, str(i+1))
+
         return cur_graph
 
 
-    def get_all_possible_next_rules_old(self, prev_graph, prev_rule_list):
-
-        graph_info = prev_graph[self.RIGHT_RULE_TAG]
-        prev_graph_edge_list = list(graph_info[self.EDGE_TAG])
-        prev_graph_node_list = list(graph_info[self.NODE_TAG])
-
-        print(prev_graph_edge_list)
-        print(prev_graph_node_list)
-
-        # format will be [rule_selected, parent_node_index_to_replace, child_node_index_to_replace,
-        # edge_index_to_replace] if there is no edge or node, use -1 as index.
-        output = []
-
-        for key in self.production_rules_dict:
-            cur_rule = self.production_rules_dict[key]
-            orig_graph = cur_rule[self.LEFT_RULE_TAG]
-            orig_edge_list = list(orig_graph[self.EDGE_TAG])
-            orig_node_list = list(orig_graph[self.NODE_TAG])
-
-            if len(orig_edge_list) == 0:
-
-                print(orig_graph)
-                cur_node = orig_node_list[0]
-                node_label = orig_graph[self.ADJ_TAG]
-                print(node_label)
-
-                for i in range(len(prev_graph_node_list)):
-                    if prev_graph_node_list[i] == cur_node:
-                        output.append([key, i, -1, -1])
-
-            # print(key, cur_rule)
-
-        return
-
-    # The functions outside the pipeline class should be elaborated in the future (wrapped in class)
-    def get_a_new_design(self, learned_model, init_sketch, init_xml_file):
-        mass = random.uniform(0, 5)
-        length = random.uniform(1, 10)
-
-        connection_mat = [[0, 1], [1, 0]]
-        feature_mat = [[0, 0], [mass, length]]
-
-        design_matrix = [connection_mat, feature_mat]
-        new_xml_file = init_xml_file  # It should be updated instead of using initial one
-        ancestors = None  # It should be all designs in the generating process of the target complete design
-        return design_matrix, new_xml_file, ancestors
+    # def get_all_possible_next_rules_old(self, prev_graph, prev_rule_list):
+    #
+    #     graph_info = prev_graph[self.RIGHT_RULE_TAG]
+    #     prev_graph_edge_list = list(graph_info[self.EDGE_TAG])
+    #     prev_graph_node_list = list(graph_info[self.NODE_TAG])
+    #
+    #     print(prev_graph_edge_list)
+    #     print(prev_graph_node_list)
+    #
+    #     output = []
+    #
+    #     for key in self.production_rules_dict:
+    #         cur_rule = self.production_rules_dict[key]
+    #         orig_graph = cur_rule[self.LEFT_RULE_TAG]
+    #         orig_edge_list = list(orig_graph[self.EDGE_TAG])
+    #         orig_node_list = list(orig_graph[self.NODE_TAG])
+    #
+    #         if len(orig_edge_list) == 0:
+    #
+    #             print(orig_graph)
+    #             cur_node = orig_node_list[0]
+    #             node_label = orig_graph[self.ADJ_TAG]
+    #             print(node_label)
+    #
+    #             for i in range(len(prev_graph_node_list)):
+    #                 if prev_graph_node_list[i] == cur_node:
+    #                     output.append([key, i, -1, -1])
+    #
+    #     return
+    #
+    # def get_a_new_design(self, learned_model, init_sketch, init_xml_file):
+    #     mass = random.uniform(0, 5)
+    #     length = random.uniform(1, 10)
+    #
+    #     connection_mat = [[0, 1], [1, 0]]
+    #     feature_mat = [[0, 0], [mass, length]]
+    #
+    #     design_matrix = [connection_mat, feature_mat]
+    #     new_xml_file = init_xml_file
+    #     ancestors = None
+    #     return design_matrix, new_xml_file, ancestors

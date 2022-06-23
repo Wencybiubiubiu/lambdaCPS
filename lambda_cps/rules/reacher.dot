@@ -1,79 +1,60 @@
 digraph make_robot {
   subgraph L {
-    robot [require_label="robot"];
+    pendulum [require_label="pendulum"];
   }
 
   subgraph R {
     environment [label="environment"];
-    body [label="body"];
-    environment -> body [label="hinge_joint"];
+    hinge [label="hinge"];
+    finger [label="finger"];
+    environment -> hinge [label="hinge_joint"];
+    hinge -> finger [label="hinge_joint"];
   }
 }
 
 digraph append_body {
   subgraph L {
-    body [require_label="body"];
-    parent -> body [require_label="hinge_joint"];
-  }
-
-  subgraph R {
-    hinge [label="hinge"];
-    body [label="body"];
-    parent -> hinge [label="hinge_joint"];
-    hinge -> body [label="hinge_joint"];
-  }
-}
-
-digraph end_body {
-  subgraph L {
-    body [require_label="body"];
-    parent -> body [require_label="hinge_joint"];
+    finger [require_label="finger"];
+    parent -> finger [label="parent_edges"];
   }
 
   subgraph R {
     finger [label="finger"];
-    parent -> finger [label="rigid_joint"];
+    hinge [label="hinge"];
+    parent -> hinge [label="parent_edges"];
+    hinge -> finger [label="hinge_joint"];
   }
 }
 
-digraph make_hinge {
-  subgraph L {
-    hinge [require_label="hinge"];
-  }
-
-  subgraph R {
-    hinge [shape=capsule, length=0.15, radius=0.025];
-  }
-}
-
-digraph make_finger {
+digraph end_finger {
   subgraph L {
     finger [require_label="finger"];
+    parent -> finger;
   }
 
   subgraph R {
-    finger [shape=sphere, radius=0.025];
+    parent;
   }
 }
 
-digraph make_fixed_body_joint {
+digraph end_environment {
   subgraph L {
-    parent -> child [require_label="rigid_joint"];
+    environment [require_label="environment"];
+    environment -> child;
   }
 
   subgraph R {
-    parent -> child [type=fixed];
+    child;
   }
 }
 
-digraph make_hinge_joint {
+
+digraph make_lift_hinge_joint {
   subgraph L {
     parent -> child [require_label="hinge_joint"];
   }
 
   subgraph R {
-    parent -> child [type=hinge, joint_axis="1 0 0"];
+    parent -> child [label="hinge_joint", type=hinge, joint_axis="0 0 1"];
   }
 }
-
-

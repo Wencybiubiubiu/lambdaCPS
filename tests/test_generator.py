@@ -4,8 +4,8 @@ from lambda_cps.parsing.parser import Parser
 
 if __name__ == '__main__':
 
-    # rule_file = '/Users/wenxianzhang/Desktop/mujocoApp/lambdaCPS/lambda_cps/rules/reacher.dot'
-    rule_file = '/Users/wenxianzhang/Desktop/mujocoApp/lambdaCPS/lambda_cps/rules/RoboGrammar.dot'
+    rule_file = '/Users/wenxianzhang/Desktop/mujocoApp/lambdaCPS/lambda_cps/rules/reacher.dot'
+    # rule_file = '/Users/wenxianzhang/Desktop/mujocoApp/lambdaCPS/lambda_cps/rules/RoboGrammar.dot'
     new_parser = Parser(rule_file)
     rule_dict = new_parser.get_rule_dict()
     new_generator = DesignGenerator(rule_dict)
@@ -15,4 +15,5 @@ if __name__ == '__main__':
     # next_step = new_generator.pick_action(action_list)
     # new_generator.take_action(init_graph, name_dict, next_step)
 
-    new_generator.get_a_new_design_with_max_steps(init_graph, 4)
+    new_generator.set_process_saving_flag()
+    new_generator.get_a_new_design_with_max_steps(init_graph, 10)

@@ -9,6 +9,7 @@ class RuleParam:
         self.LEFT_RULE_INDEX = 0
         self.RIGHT_RULE_INDEX = 1
 
+        self.ORIG_RULE_GRAPH_TAG = 'OG'
         self.LEFT_GRAPH_TAG = 'LF'
         self.RIGHT_GRAPH_TAG = 'RG'
         self.LEFT_RULE_NODE_TAG = 'LRN'
@@ -28,6 +29,8 @@ class RuleParam:
         self.label = 'label'
         self.node_count = 'count'
 
+    def create_new_node_name(self, input_number):
+        return 'n' + str(input_number)
 
 class Parser(RuleParam):
 
@@ -54,7 +57,8 @@ class Parser(RuleParam):
             right_rule_edge_list = right_rule.get_edge_list()
 
 
-            self.rule_dict[rule_name] = {self.LEFT_GRAPH_TAG: left_rule, self.RIGHT_GRAPH_TAG: right_rule,
+            self.rule_dict[rule_name] = {self.ORIG_RULE_GRAPH_TAG: each_rule,
+                                         self.LEFT_GRAPH_TAG: left_rule, self.RIGHT_GRAPH_TAG: right_rule,
                                          self.LEFT_RULE_NODE_TAG: left_rule_node_list,
                                          self.LEFT_RULE_EDGE_TAG: left_rule_edge_list,
                                          self.RIGHT_RULE_NODE_TAG: right_rule_node_list,
@@ -92,6 +96,7 @@ class Parser(RuleParam):
 
         # print(self.rule_dict)
 
+
     def get_rule_dict(self):
 
         return self.rule_dict
@@ -110,7 +115,7 @@ class Parser(RuleParam):
         for i in range(len(empty_sketch[self.RIGHT_RULE_NODE_TAG])):
             orig_name = empty_sketch[self.RIGHT_RULE_NODE_TAG][i].get_name()
             orig_label = right_side.get_node(orig_name)[0].get_attributes()[self.label].replace('\"', '')
-            new_name = 'node_' + str(i)
+            new_name = self.create_new_node_name(i)
             # right_side.get_node(orig_name)[0].set_name(new_name)
             new_design.add_node(pydot.Node(new_name, label=orig_label))
             replace_name_dict[orig_name] = new_name
