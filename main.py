@@ -4,6 +4,7 @@ from lambda_cps.evaluation.reward.condition import ConditionProcessor
 from lambda_cps.evaluation.simulation_sampling.sampler import Sampler
 from lambda_cps.evaluation.fitting.GNN import ParamName, GCNDataWrapper, GCNModel
 from lambda_cps.design_generator.generator import DesignGenerator
+from lambda_cps.parsing.parser import Parser
 
 
 class Pipeline(ParamName):
@@ -14,8 +15,9 @@ class Pipeline(ParamName):
 
     def execute(self):
 
-        # training parameters
+        # training and generating parameters
         num_of_designs = 3
+        max_generating_steps = 10
         num_of_simulations_for_each_design = 4
         num_of_steps_for_each_design = 10
         training_epochs = 10
@@ -33,68 +35,60 @@ class Pipeline(ParamName):
         # 3. environment (included in controller)
         # 4. production rules
         # 5. input program sketch (we assume as empty now)
-        pre_condition = [[-np.pi / 2, 0.1], [np.pi / 2, 0.1]]
-        post_condition = [[-np.pi / 4, 0], [np.pi / 4, 10]]
-        cond = ConditionProcessor(pre_condition, post_condition)
-
-        # Elaborated in the future
+        pre_condition = None
+        post_condition = None
         init_sketch = None
         init_xml_file = None
-        production_rules = None
+        rule_file = './lambda_cps/rules/reacher.dot'
 
         # some tools
         new_sampler = Sampler(num_of_simulations_for_each_design, num_of_steps_for_each_design)
-        new_generator = DesignGenerator(production_rules)
+        new_parser = Parser(rule_file)
+        new_generator = DesignGenerator(new_parser.get_rule_dict())
         new_controller = Controller()
 
+        init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
+
+        # Uncomment this line if you want to see the visualization of generating process in data/res/generating_process folder
+        # new_generator.set_process_saving_flag()
+
         # Generating round (with a loop)
-        # Currently, it generates a list of designs and matching scores, and then they are used in GCN training.
-        # We should co-update RL model and GCN model, so we need to change it then.
         sampling_dataset = []
         for i in range(num_of_designs):
 
             # design searching and generating block
-            # In the future, it should be able to take production rules as input
-            current_design, cur_xml_file, ancestors_of_cur_design = new_generator.get_a_new_design(GCNModel,
-                                                                                                   init_sketch,
-                                                                                                   init_xml_file)
 
+            # It will produce a list of incomplete programs in the generating process
+            # [p_0, p_1, p_2, ..., p_n], p_0 is the init sketch, p_n is the finally generated design
+
+            graph_format = 'networkx'
+            # It is heavy of reloading everytime, I will refine it later.
+            init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
+            designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(init_graph,
+                                                                                            max_generating_steps,
+                                                                                            graph_format)
+
+            ancestors_of_complete_design = designs_from_generating_process[:-1]
+
+            # To process networkx class object, refer to https://networkx.org/documentation/stable/reference/introduction.html
+            complete_design = designs_from_generating_process[-1]
+
+            print(complete_design)
+
+            # controller and environment
             # env update: embed new design into the environment
-            env, lqr_controller = new_controller.get_env_and_controller()  # controller should be reset as the design is changed
-            env = new_controller.set_new_design_to_env(env, current_design, cur_xml_file)
+            # controller may be reset as the design is changed
+            env, controller = None, None
 
-            # sample block
-            # It will generate a list of samples with the same design
-            sampling = new_sampler.sample_one_design(env, lqr_controller, cond, current_design)
+            # simulation block
+            # It should get the trajectory of simulation (output) of the generated design
+            trajectory = None
 
             # score calculating block
-            cur_score_list = []
-            for each_sample_ind in range(len(sampling[self.TRAJ_VECTOR])):
-                matching_score = cond.score_calculator(sampling[self.TRAJ_VECTOR][each_sample_ind][1])
-                cur_score_list.append(matching_score[0])
-            sampling[self.SCORE_TAG] = np.mean(cur_score_list)
+            score = 0
 
-            # It temporarily divides classes into 0,1,2,3,4,5,6,7,8,9
-            # sampling[self.SCORE_TAG] = int(round(int(sampling[self.SCORE_TAG]), -1)/10)
-
-            sampling_dataset.append(sampling)
-
-            if i % 10 == 0:
-                print('The ' + str(i + 1) + 'th design with A and D ' + str(current_design) + ' finished.')
-
-        # sample format pre-processing format
-
-        data_wrapper = GCNDataWrapper()
-        new_sampling_dataset = data_wrapper.process_all(sampling_dataset)
-        training_set, test_set = data_wrapper.split_data(new_sampling_dataset, train_test_partition_portion)
-
-        # GNN block: Graph Neural Network update by this sample
-
-        # We need a mechanism to update GCN model in every round of generating a new design
-        new_GCN.training(training_epochs, training_set)
-        # test_prediction_tensor_list, test_real_label_tensor_list, acc = new_GCN.predict_all(test_set)
-        # train_prediction_tensor_list, train_real_label_tensor_list, acc = new_GCN.predict_all(training_set)
-        # all_prediction_tensor_list, all_real_label_tensor_list, acc = new_GCN.predict_all(new_sampling_dataset)
+            # Some training procedure
+            # GCN and RL
 
         return
 

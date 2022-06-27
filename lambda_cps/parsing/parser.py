@@ -81,8 +81,7 @@ class Parser(RuleParam):
             left_dict = {self.ADJ_TAG: left_rule.adj, self.NODE_TAG: left_rule.nodes, self.EDGE_TAG: left_rule.edges}
             right_dict = {self.ADJ_TAG: right_rule.adj, self.NODE_TAG: right_rule.nodes, self.EDGE_TAG: right_rule.edges}
 
-            self.rule_dict[cur_networkx_graph.name] = {self.LEFT_GRAPH_TAG: left_rule, self.RIGHT_GRAPH_TAG: right_rule,
-                                                       self.LEFT_RULE_TAG: left_dict, self.RIGHT_RULE_TAG: right_dict}
+            self.rule_dict[cur_networkx_graph.name] = {self.LEFT_GRAPH_TAG: left_rule, self.RIGHT_GRAPH_TAG: right_rule}
             #
             # print(each_rule)
             # print('cur_networkx_graph.name', cur_networkx_graph.name)
@@ -101,44 +100,50 @@ class Parser(RuleParam):
 
         return self.rule_dict
 
-    def get_empty_sketch(self):
+    def get_empty_sketch(self, init_sketch):
 
-        empty_sketch = self.rule_dict[self.init_sketch_tag]
-        right_side = empty_sketch[self.RIGHT_GRAPH_TAG]
+        if init_sketch is None:
+            empty_sketch = self.rule_dict[self.init_sketch_tag]
+            right_side = empty_sketch[self.RIGHT_GRAPH_TAG]
 
-        # print(right_side)
+            # print(right_side)
 
-        new_design = pydot.Dot('new-design', graph_type='digraph')
+            new_design = pydot.Dot('new-design', graph_type='digraph')
+            # new_design = networkx.Graph(name='new-design')
 
-        replace_name_dict = {}
+            replace_name_dict = {}
 
-        for i in range(len(empty_sketch[self.RIGHT_RULE_NODE_TAG])):
-            orig_name = empty_sketch[self.RIGHT_RULE_NODE_TAG][i].get_name()
-            orig_label = right_side.get_node(orig_name)[0].get_attributes()[self.label].replace('\"', '')
-            new_name = self.create_new_node_name(i)
-            # right_side.get_node(orig_name)[0].set_name(new_name)
-            new_design.add_node(pydot.Node(new_name, label=orig_label))
-            replace_name_dict[orig_name] = new_name
-            # print(new_name, orig_name, orig_label)
+            for i in range(len(empty_sketch[self.RIGHT_RULE_NODE_TAG])):
+                orig_name = empty_sketch[self.RIGHT_RULE_NODE_TAG][i].get_name()
+                orig_label = right_side.get_node(orig_name)[0].get_attributes()[self.label].replace('\"', '')
+                new_name = self.create_new_node_name(i)
+                new_design.add_node(pydot.Node(new_name, label=orig_label))
+                # new_design.add_node(new_name, label=orig_label)
+                replace_name_dict[orig_name] = new_name
 
-        # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][0])
-        for i in range(len(empty_sketch[self.RIGHT_RULE_EDGE_TAG])):
-            source = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_source()
-            des = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_destination()
-            edge_attr = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_attributes()
-            edge_label = edge_attr[self.label].replace('\"', '')
-
-            # right_side.del_edge(source, des)
-            # right_side.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_attr[self.label]))
-            new_design.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_label))
+            # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][0])
+            for i in range(len(empty_sketch[self.RIGHT_RULE_EDGE_TAG])):
+                source = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_source()
+                des = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_destination()
+                edge_attr = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_attributes()
+                edge_label = edge_attr[self.label].replace('\"', '')
+                new_design.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_label))
+                # new_design.add_edge(replace_name_dict[source], replace_name_dict[des], label=edge_label)
 
 
-        # empty_sketch[self.RIGHT_RULE_EDGE_TAG] = right_side.get_edge_list()
-        # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][0])
-        # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][1])
-        # exit()
+            # empty_sketch[self.RIGHT_RULE_EDGE_TAG] = right_side.get_edge_list()
+            # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][0])
+            # print(empty_sketch[self.RIGHT_RULE_EDGE_TAG][1])
+            # exit()
 
-        # return self.rule_dict[self.init_sketch_tag], [self.init_sketch_tag]
+            # return self.rule_dict[self.init_sketch_tag], [self.init_sketch_tag]
 
-        return new_design, [self.init_sketch_tag]
+            return new_design, [self.init_sketch_tag]
+
+        else:
+
+            print("We do not implement generating a design from non-empty sketch. Program quits.")
+            exit()
+
+            return None
 

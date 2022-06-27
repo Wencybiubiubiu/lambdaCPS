@@ -303,9 +303,16 @@ class DesignGenerator(RuleParam):
 
         return cur_graph, node_name_dict, cur_node_count
 
-    def get_a_new_design_with_max_steps(self, input_graph, max_steps):
+    def get_a_new_design_with_max_steps(self, input_graph, max_steps, graph_format):
 
         cur_graph = input_graph
+
+        generating_process = []
+
+        if graph_format == 'pydot':
+            generating_process.append(input_graph)
+        else:
+            generating_process.append(nx.drawing.nx_pydot.from_pydot(cur_graph))
 
         if self.save_generating_process_flag:
             self.generate_networkx_image(cur_graph, self.init_sketch_tag, self.new_folder, "0")
@@ -316,10 +323,12 @@ class DesignGenerator(RuleParam):
             next_step = self.pick_action(action_list)
             cur_graph, name_dict, node_count = self.take_action(cur_graph, name_dict, next_step, node_count)
 
+            generating_process.append(nx.drawing.nx_pydot.from_pydot(cur_graph))
+
             if self.save_generating_process_flag:
                 self.generate_networkx_image(cur_graph, next_step[1], self.new_folder, str(i+1))
 
-        return cur_graph
+        return generating_process
 
 
     # def get_all_possible_next_rules_old(self, prev_graph, prev_rule_list):
