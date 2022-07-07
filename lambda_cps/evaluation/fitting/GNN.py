@@ -10,6 +10,7 @@ from os.path import dirname, abspath
 import os
 import lambda_cps
 from datetime import datetime
+import networkx as nx
 
 
 class ParamName:
@@ -21,6 +22,7 @@ class ParamName:
         self.FEAT_MATRIX = 'D'
         self.TRAJ_VECTOR = 'T'
         self.SCORE_TAG = 'score'
+        self.STEP_TAG = 'num_of_steps'
 
         return
 
@@ -73,17 +75,25 @@ class GCNDataWrapper(ParamName):
 
         return Data(x=x, edge_index=edge_index, y=y)
 
+    def process_one(self, input_data):
+
+        cur_data = self.collect_data(input_data)
+        cur_data = self.get_coo_format(cur_data)
+        tensor_data = self.convert_x_edge_y_to_tensor_data(cur_data)
+
+        return tensor_data
+
     def process_all(self, input_dataset):
 
         new_dataset = []
         for i in range(len(input_dataset)):
 
             cur_data = input_dataset[i]
-            cur_data = self.collect_data(cur_data)
-            cur_data = self.get_coo_format(cur_data)
-            tensor_data = self.convert_x_edge_y_to_tensor_data(cur_data)
-
-            new_dataset.append(tensor_data)
+            # cur_data = self.collect_data(cur_data)
+            # cur_data = self.get_coo_format(cur_data)
+            # tensor_data = self.convert_x_edge_y_to_tensor_data(cur_data)
+            # new_dataset.append(tensor_data)
+            new_dataset.append(self.process_one(cur_data))
 
         return new_dataset
 
@@ -142,6 +152,29 @@ class GCNDataWrapper(ParamName):
 
         #self.save_plot(x, y, pred_y, data_type)
         self.save_plot_scatter(x, y, pred_y, data_type)
+
+    def get_single_sampled_data_dict(self, input_networkx_graph, num_of_steps, input_score):
+
+        output = {self.CNNT_MATRIX: nx.to_numpy_array(input_networkx_graph).tolist()}
+
+        temp_size = 2
+        temp_feature_mat = []
+        for i in range(len(output[self.CNNT_MATRIX])):
+            temp_feature_mat.append(np.zeros(temp_size).tolist())
+
+        output[self.FEAT_MATRIX] = temp_feature_mat
+
+        output[self.STEP_TAG] = num_of_steps
+        output[self.SCORE_TAG] = input_score
+
+        return output
+
+    def convert_networkx_to_tensor_dict(self, input_networkx_graph, num_of_steps, score):
+
+        sampling = self.get_single_sampled_data_dict(input_networkx_graph, num_of_steps, score)
+        cur_tensor_data = self.process_one(sampling)
+
+        return cur_tensor_data
 
 
 class GCN(torch.nn.Module):

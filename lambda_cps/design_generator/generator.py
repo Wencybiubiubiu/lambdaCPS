@@ -178,10 +178,16 @@ class DesignGenerator(RuleParam):
 
         return node_name_to_label_dict, possible_actions
 
-    def pick_action(self, possible_action_list):
+    def pick_action(self, possible_action_list, reward_calculating_model, cur_graph, name_dict, node_count):
 
         # print(possible_action_list[1])
         # return possible_action_list[1]
+
+        predict_score_list = []
+
+        for i in range(len(possible_action_list)):
+            cur_action = possible_action_list[i]
+            # next_graph, next_name_dict, next_node_count = self.take_action(cur_graph, name_dict, cur_action, node_count)
 
         return possible_action_list[random.randint(0, len(possible_action_list)-1)]
 
@@ -189,6 +195,7 @@ class DesignGenerator(RuleParam):
 
         cur_graph = prev_graph
         temp_orig_name_2_new_name_dict = {}
+        new_node_name_dict = node_name_dict.copy()
         cur_node_count = node_count
 
         # print(prev_graph)
@@ -218,7 +225,7 @@ class DesignGenerator(RuleParam):
                     # print(new_name,cur_node_count)
                     cur_node_count = cur_node_count + 1
                     cur_graph.add_node(pydot.Node(new_name, label=orig_label))
-                    node_name_dict[new_name] = orig_name
+                    new_node_name_dict[new_name] = orig_name
                     temp_orig_name_2_new_name_dict[orig_name] = new_name
 
                 # print(node_name_dict, new_name, orig_name, orig_label)
@@ -280,10 +287,10 @@ class DesignGenerator(RuleParam):
                         # print(new_name,cur_node_count)
                         cur_node_count = cur_node_count + 1
                         cur_graph.add_node(pydot.Node(new_name, label=orig_label))
-                        node_name_dict[new_name] = orig_name
+                        new_node_name_dict[new_name] = orig_name
                         temp_orig_name_2_new_name_dict[orig_name] = new_name
                     else:
-                        node_name_dict[fixed_node_name] = orig_name
+                        new_node_name_dict[fixed_node_name] = orig_name
                         temp_orig_name_2_new_name_dict[orig_name] = fixed_node_name
 
             for i in rhs_graph_edge_list:
@@ -301,9 +308,9 @@ class DesignGenerator(RuleParam):
 
         # print(cur_graph)
 
-        return cur_graph, node_name_dict, cur_node_count
+        return cur_graph, new_node_name_dict, cur_node_count
 
-    def get_a_new_design_with_max_steps(self, input_graph, max_steps, graph_format):
+    def get_a_new_design_with_max_steps(self, reward_calculating_model, input_graph, max_steps, graph_format):
 
         cur_graph = input_graph
 
@@ -320,7 +327,7 @@ class DesignGenerator(RuleParam):
         node_count = len(input_graph.get_node_list())
         for i in range(max_steps):
             name_dict, action_list = self.get_all_possible_next_rules(cur_graph)
-            next_step = self.pick_action(action_list)
+            next_step = self.pick_action(action_list, reward_calculating_model, cur_graph, name_dict, node_count)
             cur_graph, name_dict, node_count = self.take_action(cur_graph, name_dict, next_step, node_count)
 
             generating_process.append(nx.drawing.nx_pydot.from_pydot(cur_graph))

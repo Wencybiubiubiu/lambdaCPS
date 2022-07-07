@@ -48,10 +48,10 @@ class Pipeline(ParamName):
     def execute(self):
 
         # training parameters
-        num_of_designs = 300
+        num_of_designs = 30
         num_of_simulations_for_each_design = 10
         num_of_steps_for_each_design = 10
-        training_epochs = 3000
+        training_epochs = 30
         training_lr = 1e-3 # 1e-5
         training_weight_decay = 5e-5 # 5e-6
 
@@ -84,6 +84,10 @@ class Pipeline(ParamName):
             # sample block
             # It will generate a list of samples with the same design
             sampling = new_sampler.sample_one_design(env, lqr_controller, cond, current_design)
+
+            print(sampling)
+
+            exit()
 
             # score calculating block
             cur_score_list = []

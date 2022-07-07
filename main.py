@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import networkx as nx
 from lambda_cps.evaluation.control.controller import Controller
 from lambda_cps.evaluation.reward.condition import ConditionProcessor
 from lambda_cps.evaluation.simulation_sampling.sampler import Sampler
@@ -7,11 +9,14 @@ from lambda_cps.design_generator.generator import DesignGenerator
 from lambda_cps.parsing.parser import Parser
 
 
+
+
 class Pipeline(ParamName):
 
     def __init__(self):
         super().__init__()
         return
+
 
     def execute(self):
 
@@ -46,6 +51,8 @@ class Pipeline(ParamName):
         new_parser = Parser(rule_file)
         new_generator = DesignGenerator(new_parser.get_rule_dict())
         new_controller = Controller()
+        data_wrapper = GCNDataWrapper()
+        new_GCN = GCNModel(training_lr, training_weight_decay)
 
         init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
 
@@ -64,7 +71,8 @@ class Pipeline(ParamName):
             graph_format = 'networkx'
             # It is heavy of reloading everytime, I will refine it later.
             init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
-            designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(init_graph,
+            designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
+                                                                                            init_graph,
                                                                                             max_generating_steps,
                                                                                             graph_format)
 
@@ -73,7 +81,7 @@ class Pipeline(ParamName):
             # To process networkx class object, refer to https://networkx.org/documentation/stable/reference/introduction.html
             complete_design = designs_from_generating_process[-1]
 
-            print(complete_design)
+            # print(complete_design)
 
             # controller and environment
             # env update: embed new design into the environment
@@ -85,7 +93,13 @@ class Pipeline(ParamName):
             trajectory = None
 
             # score calculating block
-            score = 0
+            cur_score = random.randint(0, 100)
+
+            cur_tensor_data = data_wrapper.convert_networkx_to_tensor_dict(complete_design, len(designs_from_generating_process), cur_score)
+            sampling_dataset.append(cur_tensor_data)
+
+            print(cur_tensor_data)
+            exit()
 
             # Some training procedure
             # GCN and RL
