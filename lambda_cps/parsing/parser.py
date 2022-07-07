@@ -27,6 +27,8 @@ class RuleParam:
 
         self.require_label = 'require_label'
         self.label = 'label'
+        self.terminal = "terminal"
+        self.set_terminal = "T"
         self.node_count = 'count'
 
     def create_new_node_name(self, input_number):
@@ -115,9 +117,15 @@ class Parser(RuleParam):
 
             for i in range(len(empty_sketch[self.RIGHT_RULE_NODE_TAG])):
                 orig_name = empty_sketch[self.RIGHT_RULE_NODE_TAG][i].get_name()
-                orig_label = right_side.get_node(orig_name)[0].get_attributes()[self.label].replace('\"', '')
+                orig_attr = right_side.get_node(orig_name)[0].get_attributes()
+                orig_label = orig_attr[self.label].replace('\"', '')
                 new_name = self.create_new_node_name(i)
-                new_design.add_node(pydot.Node(new_name, label=orig_label))
+
+                if self.terminal in orig_attr:
+                    orig_terminal = orig_attr[self.terminal].replace('\"', '')
+                    new_design.add_node(pydot.Node(new_name, label=orig_label, terminal=orig_terminal))
+                else:
+                    new_design.add_node(pydot.Node(new_name, label=orig_label))
                 # new_design.add_node(new_name, label=orig_label)
                 replace_name_dict[orig_name] = new_name
 
@@ -127,7 +135,12 @@ class Parser(RuleParam):
                 des = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_destination()
                 edge_attr = empty_sketch[self.RIGHT_RULE_EDGE_TAG][i].get_attributes()
                 edge_label = edge_attr[self.label].replace('\"', '')
-                new_design.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_label))
+                if self.terminal in edge_attr:
+                    orig_terminal = edge_attr[self.terminal].replace('\"', '')
+                    new_design.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_label,
+                                                   terminal=orig_terminal))
+                else:
+                    new_design.add_edge(pydot.Edge(replace_name_dict[source], replace_name_dict[des], label=edge_label))
                 # new_design.add_edge(replace_name_dict[source], replace_name_dict[des], label=edge_label)
 
 

@@ -37,6 +37,17 @@ digraph end_finger {
   }
 }
 
+digraph end_environment {
+  subgraph L {
+    environment [require_label="environment"];
+    environment -> child;
+  }
+
+  subgraph R {
+    child [terminal="T"];
+  }
+}
+
 
 digraph make_lift_hinge_joint {
   subgraph L {

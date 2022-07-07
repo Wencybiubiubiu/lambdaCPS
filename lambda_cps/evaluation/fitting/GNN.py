@@ -211,6 +211,19 @@ class GCNModel:
 
         return
 
+    def update_model_with_single_sample(self, input_sample):
+
+        data = input_sample.to(self.device)
+        self.optimizer.zero_grad()
+        out = self.model(data)
+        print(out.squeeze(0), data.y)
+        loss = F.l1_loss(out.squeeze(0), data.y)
+        loss.backward()
+        self.optimizer.step()
+        self.model.eval()
+
+        return
+
     def training(self, iteration_times, training_set):
 
         for epoch in range(iteration_times):

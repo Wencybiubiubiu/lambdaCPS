@@ -1,4 +1,5 @@
 import random
+import numpy as np
 from lambda_cps.parsing.parser import RuleParam
 import pydot
 from graphviz import Digraph
@@ -8,6 +9,7 @@ from datetime import datetime
 from os.path import dirname, abspath
 import os
 import lambda_cps
+from lambda_cps.evaluation.fitting.GNN import GCNDataWrapper
 
 
 class DesignGenerator(RuleParam):
@@ -99,6 +101,9 @@ class DesignGenerator(RuleParam):
 
         return
 
+    def remove_quote(self, input_str):
+        return input_str.replace('\'','').replace('\"','')
+
     def get_all_possible_next_rules(self, prev_graph):
 
         # graph_info = prev_graph[self.RIGHT_GRAPH_TAG]
@@ -130,15 +135,17 @@ class DesignGenerator(RuleParam):
                 replaced_node = orig_node_list[0]
 
                 # print(cur_rule_name, replaced_node)
-
-                for i in range(len(prev_graph_node_list)):
-                    target_node = prev_graph_node_list[i]
-                    target_node_label = target_node.get_attributes()[self.label].replace('\'','').replace('\"','')
-                    replaced_node_label = replaced_node.get_attributes()[self.require_label].replace('\'','').replace('\"','')
-                    # print(target_node.get_attributes())
-                    if target_node_label == replaced_node_label:
-                        possible_actions.append([self.node_to_, cur_rule_name, target_node.get_name()])
-                        # print(output[-1])
+                if self.terminal not in replaced_node.get_attributes():
+                    for i in range(len(prev_graph_node_list)):
+                        target_node = prev_graph_node_list[i]
+                        target_node_label = self.remove_quote(target_node.get_attributes()[self.label])
+                        replaced_node_label = self.remove_quote(replaced_node.get_attributes()[self.require_label])
+                        # print(target_node.get_attributes())
+                        if target_node_label == replaced_node_label:
+                            possible_actions.append([self.node_to_, cur_rule_name, target_node.get_name()])
+                            # print(output[-1])
+                # else:
+                #     print(replaced_node.get_attributes()[self.terminal])
 
             else:
                 replaced_edge = orig_edge_list[0]
@@ -147,49 +154,98 @@ class DesignGenerator(RuleParam):
 
                 for i in range(len(prev_graph_edge_list)):
                     target_edge = prev_graph_edge_list[i]
+                    target_edge_source = target_edge.get_source()
+                    target_edge_des = target_edge.get_destination()
                     # print(replaced_edge, target_edge)
-                    if self.require_label in replaced_edge.get_attributes():
-                        if target_edge.get_attributes()[self.label] == replaced_edge.get_attributes()[self.require_label]:
-                            # print(replaced_edge_source, replaced_edge_des)
-                            if replaced_edge_source == self.parent_node and replaced_edge_des == self.child_node:
-                                possible_actions.append([self.edge_to_both, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
-                            elif replaced_edge_source == self.parent_node and \
-                                    replaced_edge_des == node_name_to_label_dict[target_edge.get_destination()]:
-                                possible_actions.append([self.edge_to_child, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
-                            elif replaced_edge_des == self.child_node and \
-                                    replaced_edge_source == node_name_to_label_dict[target_edge.get_source()]:
-                                possible_actions.append([self.edge_from_parent, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
-                    else:
-                        # print(graph_info)
-                        # print(graph_info.get_node("body"))
-                        # print(node_name_to_label_dict)
-                        # print(target_edge.get_destination(), node_name_to_label_dict[target_edge.get_destination()])
-                        if replaced_edge_source == self.parent_node and replaced_edge_des == self.child_node:
-                            possible_actions.append([self.edge_to_both, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
-                        elif replaced_edge_source == self.parent_node and \
-                                replaced_edge_des == node_name_to_label_dict[target_edge.get_destination()]:
-                            possible_actions.append([self.edge_to_child, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
-                        elif replaced_edge_des == self.child_node and \
-                                replaced_edge_source == node_name_to_label_dict[target_edge.get_source()]:
-                            possible_actions.append([self.edge_from_parent, cur_rule_name, target_edge.get_source(), target_edge.get_destination()])
+
+                    # print(self.terminal, target_edge.get_attributes())
+                    if self.terminal not in target_edge.get_attributes():
+                        if self.require_label in replaced_edge.get_attributes():
+                            # print(cur_rule_name, len(orig_node_list), len(orig_edge_list))
+                            # print(self.remove_quote(target_edge.get_attributes()[self.label]),
+                            #       self.remove_quote(replaced_edge.get_attributes()[self.require_label]))
+                            # print(self.terminal, replaced_edge.get_attributes())
+                            if self.remove_quote(target_edge.get_attributes()[self.label]) == \
+                                    self.remove_quote(replaced_edge.get_attributes()[self.require_label]):
+                                # print(replaced_edge_source, replaced_edge_des)
+                                if replaced_edge_source == self.parent_node and replaced_edge_des == self.child_node:
+                                    possible_actions.append([self.edge_to_both, cur_rule_name, target_edge_source,
+                                                             target_edge_des])
+                                elif replaced_edge_source == self.parent_node and \
+                                        replaced_edge_des == node_name_to_label_dict[target_edge.get_destination()]:
+                                    if self.terminal not in prev_graph.get_node(target_edge_des)[0].get_attributes():
+                                        possible_actions.append([self.edge_to_child, cur_rule_name, target_edge_source,
+                                                                 target_edge_des])
+                                elif replaced_edge_des == self.child_node and \
+                                        replaced_edge_source == node_name_to_label_dict[target_edge.get_source()]:
+                                    if self.terminal not in prev_graph.get_node(target_edge_source)[0].get_attributes():
+                                        possible_actions.append([self.edge_from_parent, cur_rule_name, target_edge_source,
+                                                                 target_edge_des])
+
+                        else:
+                            # print(prev_graph)
+                            # print(node_name_to_label_dict)
+                            # print(target_edge.get_destination(), node_name_to_label_dict[target_edge.get_destination()])
+                                if replaced_edge_source == self.parent_node and replaced_edge_des == self.child_node:
+                                    possible_actions.append([self.edge_to_both, cur_rule_name, target_edge_source,
+                                                             target_edge_des])
+                                elif replaced_edge_source == self.parent_node and \
+                                        replaced_edge_des == node_name_to_label_dict[target_edge.get_destination()]:
+                                    # print(target_edge_des)
+                                    if self.terminal not in prev_graph.get_node(target_edge_des)[0].get_attributes():
+                                        possible_actions.append([self.edge_to_child, cur_rule_name, target_edge_source,
+                                                                 target_edge_des])
+                                elif replaced_edge_des == self.child_node and \
+                                        replaced_edge_source == node_name_to_label_dict[target_edge.get_source()]:
+                                    if self.terminal not in prev_graph.get_node(target_edge_source)[0].get_attributes():
+                                        possible_actions.append([self.edge_from_parent, cur_rule_name, target_edge_source,
+                                                                 target_edge_des])
+                    # else:
+                    #     print(replaced_edge.get_attributes())
+                    #     print(replaced_edge.get_attributes()[self.terminal])
 
         # print('possible_actions', possible_actions)
         # exit()
 
         return node_name_to_label_dict, possible_actions
 
-    def pick_action(self, possible_action_list, reward_calculating_model, cur_graph, name_dict, node_count):
+    def pick_action(self, possible_action_list, decay_rate, reward_calculating_model, cur_graph, name_dict, node_count):
 
-        # print(possible_action_list[1])
-        # return possible_action_list[1]
+        # print(possible_action_list)
+        # exit()
+        # print(cur_graph)
+        # return possible_action_list[4]
+
+        prob = random.random()
+        if prob < decay_rate:
+            random_index = random.randint(0, len(possible_action_list) - 1)
+
+            print('random', random_index, possible_action_list[random_index])
+
+            return possible_action_list[random_index]
+
 
         predict_score_list = []
-
         for i in range(len(possible_action_list)):
-            cur_action = possible_action_list[i]
-            # next_graph, next_name_dict, next_node_count = self.take_action(cur_graph, name_dict, cur_action, node_count)
 
-        return possible_action_list[random.randint(0, len(possible_action_list)-1)]
+            new_networkx_copy = nx.drawing.nx_pydot.from_pydot(cur_graph).copy()
+            new_pydot_copy = nx.drawing.nx_pydot.to_pydot(new_networkx_copy)
+
+            cur_action = possible_action_list[i]
+            next_graph, next_name_dict, next_node_count = self.take_action(new_pydot_copy, name_dict, cur_action, node_count)
+
+            next_networkx_graph = nx.drawing.nx_pydot.from_pydot(next_graph)
+
+            tensor_next_graph = GCNDataWrapper().convert_networkx_to_tensor_dict(next_networkx_graph, 0, 0)
+            score = reward_calculating_model.predict_one(tensor_next_graph)
+            predict_score_list.append(score.detach().numpy()[0][0])
+
+        argmax_index = np.argmin(predict_score_list)
+        print(argmax_index, predict_score_list[argmax_index], possible_action_list[argmax_index])
+
+        return possible_action_list[argmax_index]
+
+
 
     def take_action(self, prev_graph, node_name_dict, picked_action, node_count):
 
@@ -214,12 +270,28 @@ class DesignGenerator(RuleParam):
 
         if edit_method != self.node_to_:
 
+            # print(1, cur_graph, picked_action)
+
+            if len(rhs_graph_node_list) == 1 and len(rhs_graph_edge_list) == 0 \
+                and (rhs_graph_node_list[0].get_name() == self.child_node or rhs_graph_node_list[0].get_name() == self.parent_node) \
+                and self.terminal in rhs_graph_node_list[0].get_attributes():
+
+                if edit_method == self.edge_to_child:
+                    # print(cur_graph.get_node(picked_action[3]))
+                    cur_graph.get_node(picked_action[3])[0].set(self.terminal, self.set_terminal)
+                    # print(cur_graph)
+                elif edit_method == self.edge_from_parent:
+                    cur_graph.get_node(picked_action[2])[0].set(self.terminal, self.set_terminal)
+                    # print(cur_graph)
+
+
             for i in rhs_graph_node_list:
+                # print(2)
                 # graph_info.add_node(i)
                 # print(i)
                 # print(node_name_dict)
                 orig_name = i.get_name()
-                if orig_name != 'child' and orig_name != 'parent':
+                if orig_name != self.child_node and orig_name != self.parent_node:
                     orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
                     new_name = self.create_new_node_name(cur_node_count)
                     # print(new_name,cur_node_count)
@@ -238,39 +310,49 @@ class DesignGenerator(RuleParam):
             # Notice: It should be elaborated in the future !!!!
             # ????????
             if len(rhs_graph_edge_list) > 0:
+                # print(3)
+                # print(cur_graph)
                 cur_graph.del_edge(picked_action[2], picked_action[3])
 
-                if edit_method == self.edge_to_both:
-                    cur_graph.del_node(picked_action[2])
-                    cur_graph.del_node(picked_action[3])
-                elif edit_method == self.edge_to_child:
+                if edit_method == self.edge_to_child:
                     cur_graph.del_node(picked_action[3])
                 elif edit_method == self.edge_from_parent:
                     cur_graph.del_node(picked_action[2])
+                # elif edit_method == self.edge_to_both:
+                #     cur_graph.del_node(picked_action[2])
+                #     cur_graph.del_node(picked_action[3])
 
-            for i in rhs_graph_edge_list:
-                orig_edge_source = i.get_source()
-                orig_edge_des = i.get_destination()
-                edge_attr = i.get_attributes()
-                edge_label = ''
-                if self.label in edge_attr:
-                    edge_label = edge_attr[self.label].replace('\"', '').replace('\'', '')
+                for i in rhs_graph_edge_list:
+                    # print(4)
+                    orig_edge_source = i.get_source()
+                    orig_edge_des = i.get_destination()
+                    edge_attr = i.get_attributes()
+                    edge_label = ''
+                    if self.label in edge_attr:
+                        edge_label = self.remove_quote(edge_attr[self.label])
 
-                if orig_edge_source == 'parent' and orig_edge_des == 'child':
-                    orig_edge_source = picked_action[2]
-                    orig_edge_des = picked_action[3]
-                elif orig_edge_source == 'parent':
-                    orig_edge_source = picked_action[2]
-                    orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
-                elif orig_edge_des == 'child':
-                    orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
-                    orig_edge_des = picked_action[3]
-                else:
-                    orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
-                    orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
+                    if orig_edge_source == self.parent_node and orig_edge_des == self.child_node:
+                        orig_edge_source = picked_action[2]
+                        orig_edge_des = picked_action[3]
+                    elif orig_edge_source == self.parent_node:
+                        orig_edge_source = picked_action[2]
+                        orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
+                    elif orig_edge_des == self.child_node:
+                        orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
+                        orig_edge_des = picked_action[3]
+                    else:
+                        orig_edge_source = temp_orig_name_2_new_name_dict[orig_edge_source]
+                        orig_edge_des = temp_orig_name_2_new_name_dict[orig_edge_des]
 
-                cur_graph.add_edge(pydot.Edge(orig_edge_source, orig_edge_des, label=edge_label))
+                    if self.terminal in edge_attr:
+                        cur_graph.add_edge(pydot.Edge(orig_edge_source, orig_edge_des, label=edge_label,
+                                                      terminal=self.set_terminal))
+                    else:
+                        cur_graph.add_edge(pydot.Edge(orig_edge_source, orig_edge_des, label=edge_label))
 
+                    # print(cur_graph)
+
+            # print(5)
         else:
 
             fixed_node_name = picked_action[2]
@@ -279,9 +361,9 @@ class DesignGenerator(RuleParam):
             for i in rhs_graph_node_list:
 
                 orig_name = i.get_name()
-                if orig_name != 'child' and orig_name != 'parent':
+                if orig_name != self.child_node and orig_name != self.parent_node:
                     # print(i.get_attributes())
-                    orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
+                    orig_label = self.remove_quote(i.get_attributes()[self.label])
                     if orig_label != fixed_node_label:
                         new_name = self.create_new_node_name(cur_node_count)
                         # print(new_name,cur_node_count)
@@ -310,7 +392,7 @@ class DesignGenerator(RuleParam):
 
         return cur_graph, new_node_name_dict, cur_node_count
 
-    def get_a_new_design_with_max_steps(self, reward_calculating_model, input_graph, max_steps, graph_format):
+    def get_a_new_design_with_max_steps(self, reward_calculating_model, input_graph, max_steps, decay_rate, graph_format):
 
         cur_graph = input_graph
 
@@ -327,8 +409,15 @@ class DesignGenerator(RuleParam):
         node_count = len(input_graph.get_node_list())
         for i in range(max_steps):
             name_dict, action_list = self.get_all_possible_next_rules(cur_graph)
-            next_step = self.pick_action(action_list, reward_calculating_model, cur_graph, name_dict, node_count)
+
+            if len(action_list) == 0:
+                return generating_process
+
+            next_step = self.pick_action(action_list, decay_rate, reward_calculating_model, cur_graph, name_dict, node_count)
             cur_graph, name_dict, node_count = self.take_action(cur_graph, name_dict, next_step, node_count)
+
+            # print(next_step)
+            # print(cur_graph)
 
             generating_process.append(nx.drawing.nx_pydot.from_pydot(cur_graph))
 
