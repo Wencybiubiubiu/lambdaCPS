@@ -209,7 +209,8 @@ class DesignGenerator(RuleParam):
 
         return node_name_to_label_dict, possible_actions
 
-    def pick_action(self, possible_action_list, decay_rate, reward_calculating_model, cur_graph, name_dict, node_count):
+    def pick_action(self, possible_action_list, decay_rate, reward_calculating_model, reward_calculating_function,
+                    cur_graph, name_dict, node_count):
 
         # print(possible_action_list)
         # exit()
@@ -236,15 +237,16 @@ class DesignGenerator(RuleParam):
 
             next_networkx_graph = nx.drawing.nx_pydot.from_pydot(next_graph)
 
-            # score = reward_calculating_model(next_networkx_graph)
-            # predict_score_list.append(score)
 
             tensor_next_graph = GCNDataWrapper().convert_networkx_to_tensor_dict(next_networkx_graph, 0, 0)
             score = reward_calculating_model.predict_one(tensor_next_graph)
             predict_score_list.append(score.detach().numpy()[0][0])
 
-        argmax_index = np.argmax(predict_score_list)
-        print(argmax_index, predict_score_list[argmax_index], possible_action_list[argmax_index])
+            test_score = reward_calculating_function(next_networkx_graph)
+            print(test_score, score)
+
+        argmax_index = np.argmin(predict_score_list)
+        print(argmax_index, predict_score_list, predict_score_list[argmax_index], possible_action_list[argmax_index])
 
         return possible_action_list[argmax_index]
 
@@ -395,7 +397,7 @@ class DesignGenerator(RuleParam):
 
         return cur_graph, new_node_name_dict, cur_node_count
 
-    def get_a_new_design_with_max_steps(self, reward_calculating_model, input_graph, max_steps, decay_rate, graph_format):
+    def get_a_new_design_with_max_steps(self, reward_calculating_model, reward_calculating_function, input_graph, max_steps, decay_rate, graph_format):
 
         cur_graph = input_graph
 
@@ -416,7 +418,8 @@ class DesignGenerator(RuleParam):
             if len(action_list) == 0:
                 return generating_process
 
-            next_step = self.pick_action(action_list, decay_rate, reward_calculating_model, cur_graph, name_dict, node_count)
+            next_step = self.pick_action(action_list, decay_rate, reward_calculating_model, reward_calculating_function,
+                                         cur_graph, name_dict, node_count)
             cur_graph, name_dict, node_count = self.take_action(cur_graph, name_dict, next_step, node_count)
 
             # print(next_step)

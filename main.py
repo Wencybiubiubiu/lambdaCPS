@@ -20,13 +20,13 @@ class Pipeline(ParamName):
 
     def reward(self, generated_design):
 
-        return 100-len(generated_design.nodes())*10
+        return 200-len(generated_design.nodes())*10
 
     def execute(self):
 
         # training and generating parameters
         num_of_designs = 100
-        max_generating_steps = 10
+        max_generating_steps = 9
         num_of_simulations_for_each_design = 4
         num_of_steps_for_each_design = 10
         training_epochs = 10
@@ -92,16 +92,12 @@ class Pipeline(ParamName):
             # exit()
 
             designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
+                                                                                            self.reward,
                                                                                             init_graph,
                                                                                             max_generating_steps,
                                                                                             decay_rate,
                                                                                             graph_format)
 
-            # designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(self.reward,
-            #                                                                                 init_graph,
-            #                                                                                 max_generating_steps,
-            #                                                                                 decay_rate,
-            #                                                                                 graph_format)
 
             ancestors_of_complete_design = designs_from_generating_process[:-1]
 
@@ -120,7 +116,7 @@ class Pipeline(ParamName):
             trajectory = None
 
             # score calculating block
-            cur_score = random.randint(0, 100)
+            # cur_score = random.randint(0, 100)
             cur_score = self.reward(complete_design)
             # print(cur_score)
             # print(complete_design)
@@ -139,6 +135,14 @@ class Pipeline(ParamName):
 
             new_GCN.training(training_epochs, sampling_dataset)
 
+        init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
+        designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
+                                                                                        self.reward,
+                                                                                        init_graph,
+                                                                                        max_generating_steps,
+                                                                                        decay_rate,
+                                                                                        graph_format)
+        print(designs_from_generating_process[-1])
         return
 
 
