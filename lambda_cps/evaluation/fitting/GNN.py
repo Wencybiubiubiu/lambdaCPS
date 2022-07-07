@@ -237,7 +237,7 @@ class GCNModel:
                 self.optimizer.zero_grad()
                 out = self.model(data)
                 # loss = F.nll_loss(out, data.y)
-                loss = F.l1_loss(out, data.y)
+                loss = F.l1_loss(out.squeeze(0), data.y)
                 # print(out, data.y, loss)
                 loss.backward()
                 self.optimizer.step()

@@ -236,11 +236,14 @@ class DesignGenerator(RuleParam):
 
             next_networkx_graph = nx.drawing.nx_pydot.from_pydot(next_graph)
 
+            # score = reward_calculating_model(next_networkx_graph)
+            # predict_score_list.append(score)
+
             tensor_next_graph = GCNDataWrapper().convert_networkx_to_tensor_dict(next_networkx_graph, 0, 0)
             score = reward_calculating_model.predict_one(tensor_next_graph)
             predict_score_list.append(score.detach().numpy()[0][0])
 
-        argmax_index = np.argmin(predict_score_list)
+        argmax_index = np.argmax(predict_score_list)
         print(argmax_index, predict_score_list[argmax_index], possible_action_list[argmax_index])
 
         return possible_action_list[argmax_index]

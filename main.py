@@ -18,11 +18,15 @@ class Pipeline(ParamName):
         return
 
 
+    def reward(self, generated_design):
+
+        return 100-len(generated_design.nodes())*10
+
     def execute(self):
 
         # training and generating parameters
-        num_of_designs = 3000
-        max_generating_steps = 30
+        num_of_designs = 100
+        max_generating_steps = 10
         num_of_simulations_for_each_design = 4
         num_of_steps_for_each_design = 10
         training_epochs = 10
@@ -31,7 +35,7 @@ class Pipeline(ParamName):
         train_test_partition_portion = 0.75
 
         decay_rate = 1
-        decay_coefficient = 0.99
+        decay_coefficient = 0.95
         decay_frequency = 10
 
         # Set an initial GCN model
@@ -82,11 +86,9 @@ class Pipeline(ParamName):
             decay_rate = decay_rate * decay_coefficient
             # print(decay_rate)
 
-            # for j in range(1000):
-            #
-            #     if j % (num_of_designs / 1000) == 0:
-            #         decay_rate = decay_rate * decay_coefficient
-            #         print(j,decay_rate)
+            # for j in range(100):
+            #     decay_rate = decay_rate * decay_coefficient
+            #     print(j,decay_rate)
             # exit()
 
             designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
@@ -94,6 +96,12 @@ class Pipeline(ParamName):
                                                                                             max_generating_steps,
                                                                                             decay_rate,
                                                                                             graph_format)
+
+            # designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(self.reward,
+            #                                                                                 init_graph,
+            #                                                                                 max_generating_steps,
+            #                                                                                 decay_rate,
+            #                                                                                 graph_format)
 
             ancestors_of_complete_design = designs_from_generating_process[:-1]
 
@@ -113,21 +121,23 @@ class Pipeline(ParamName):
 
             # score calculating block
             cur_score = random.randint(0, 100)
-            cur_score = len(complete_design.nodes())*10
+            cur_score = self.reward(complete_design)
             # print(cur_score)
             # print(complete_design)
 
             cur_tensor_data = data_wrapper.convert_networkx_to_tensor_dict(complete_design, len(designs_from_generating_process), cur_score)
             sampling_dataset.append(cur_tensor_data)
 
-            # print(cur_tensor_data)
-            for j in range(training_epochs):
-                new_GCN.update_model_with_single_sample(cur_tensor_data)
-
             # exit()
 
             # Some training procedure
             # GCN and RL
+
+            # # print(cur_tensor_data)
+            # for j in range(training_epochs):
+            #     new_GCN.update_model_with_single_sample(cur_tensor_data)
+
+            new_GCN.training(training_epochs, sampling_dataset)
 
         return
 
