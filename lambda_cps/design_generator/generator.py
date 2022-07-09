@@ -39,7 +39,6 @@ class DesignGenerator(RuleParam):
 
         os.makedirs(self.new_folder, exist_ok=True)
 
-
     def generate_networkx_image(self, input_graph, cur_rule, filepath, filename):
 
         fig = plt.figure(figsize=(12, 12))
@@ -100,9 +99,6 @@ class DesignGenerator(RuleParam):
         plt.close()
 
         return
-
-    def remove_quote(self, input_str):
-        return input_str.replace('\'','').replace('\"','')
 
     def get_all_possible_next_rules(self, prev_graph):
 
@@ -221,7 +217,7 @@ class DesignGenerator(RuleParam):
         if prob < decay_rate:
             random_index = random.randint(0, len(possible_action_list) - 1)
 
-            print('random', random_index, possible_action_list[random_index])
+            # print('random', random_index, possible_action_list[random_index])
 
             return possible_action_list[random_index]
 
@@ -243,10 +239,10 @@ class DesignGenerator(RuleParam):
             predict_score_list.append(score.detach().numpy()[0][0])
 
             test_score = reward_calculating_function(next_networkx_graph)
-            print(test_score, score)
+            # print(test_score, score)
 
-        argmax_index = np.argmin(predict_score_list)
-        print(argmax_index, predict_score_list, predict_score_list[argmax_index], possible_action_list[argmax_index])
+        argmax_index = np.argmax(predict_score_list)
+        print(decay_rate, argmax_index, predict_score_list, predict_score_list[argmax_index])
 
         return possible_action_list[argmax_index]
 
@@ -297,11 +293,12 @@ class DesignGenerator(RuleParam):
                 # print(node_name_dict)
                 orig_name = i.get_name()
                 if orig_name != self.child_node and orig_name != self.parent_node:
-                    orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
+                    # orig_label = i.get_attributes()[self.label].replace('\"', '').replace('\'', '')
                     new_name = self.create_new_node_name(cur_node_count)
                     # print(new_name,cur_node_count)
                     cur_node_count = cur_node_count + 1
-                    cur_graph.add_node(pydot.Node(new_name, label=orig_label))
+                    # cur_graph.add_node(pydot.Node(new_name, label=orig_label))
+                    cur_graph.add_node(self.generate_a_node(new_name, i.get_attributes()))
                     new_node_name_dict[new_name] = orig_name
                     temp_orig_name_2_new_name_dict[orig_name] = new_name
 
@@ -373,7 +370,8 @@ class DesignGenerator(RuleParam):
                         new_name = self.create_new_node_name(cur_node_count)
                         # print(new_name,cur_node_count)
                         cur_node_count = cur_node_count + 1
-                        cur_graph.add_node(pydot.Node(new_name, label=orig_label))
+                        # cur_graph.add_node(pydot.Node(new_name, label=orig_label))
+                        cur_graph.add_node(self.generate_a_node(new_name, i.get_attributes()))
                         new_node_name_dict[new_name] = orig_name
                         temp_orig_name_2_new_name_dict[orig_name] = new_name
                     else:

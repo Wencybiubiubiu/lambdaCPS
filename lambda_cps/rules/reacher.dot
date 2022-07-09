@@ -1,12 +1,12 @@
 digraph make_robot {
   subgraph L {
-    reacher [require_label="reacher"];
+    reacher [require_label="reacher", indicator=10];
   }
 
   subgraph R {
-    environment [label="environment"];
-    hinge [label="hinge"];
-    finger [label="finger"];
+    environment [label="environment", indicator=20];
+    hinge [label="hinge", indicator=30];
+    finger [label="finger", indicator=40];
     environment -> hinge [label="hinge_joint"];
     hinge -> finger [label="hinge_joint"];
   }
@@ -14,13 +14,13 @@ digraph make_robot {
 
 digraph append_body {
   subgraph L {
-    finger [require_label="finger"];
+    finger [require_label="finger", indicator=40];
     parent -> finger [label="hinge_joint"];
   }
 
   subgraph R {
-    finger [label="finger"];
-    hinge [label="hinge"];
+    finger [label="finger", indicator=40];
+    hinge [label="hinge", indicator=30];
     parent -> hinge [label="hinge_joint"];
     hinge -> finger [label="hinge_joint"];
   }
@@ -28,7 +28,7 @@ digraph append_body {
 
 digraph end_finger {
   subgraph L {
-    finger [require_label="finger"];
+    finger [require_label="finger", indicator=40];
     parent -> finger;
   }
 

@@ -29,10 +29,29 @@ class RuleParam:
         self.label = 'label'
         self.terminal = "terminal"
         self.set_terminal = "T"
+        self.indicator = 'indicator'
         self.node_count = 'count'
+
 
     def create_new_node_name(self, input_number):
         return 'n' + str(input_number)
+
+    def remove_quote(self, input_str):
+        return input_str.replace('\'','').replace('\"','')
+
+    def generate_a_node(self, node_name, feature_dict):
+        new_node = pydot.Node(node_name, label=self.remove_quote(feature_dict[self.label]))
+        if self.terminal in feature_dict:
+            new_node = pydot.Node(node_name, label=self.remove_quote(feature_dict[self.label]),
+                                  terminal=self.remove_quote(feature_dict[self.terminal]))
+        elif self.indicator in feature_dict:
+            new_node = pydot.Node(node_name, label=self.remove_quote(feature_dict[self.label]),
+                                  indicator=feature_dict[self.indicator])
+        elif self.indicator in feature_dict and self.terminal in feature_dict:
+            new_node = pydot.Node(node_name, label=self.remove_quote(feature_dict[self.label]),
+                                  terminal=self.remove_quote(feature_dict[self.terminal]),
+                                  indicator=feature_dict[self.indicator])
+        return new_node
 
 class Parser(RuleParam):
 
@@ -121,11 +140,13 @@ class Parser(RuleParam):
                 orig_label = orig_attr[self.label].replace('\"', '')
                 new_name = self.create_new_node_name(i)
 
-                if self.terminal in orig_attr:
-                    orig_terminal = orig_attr[self.terminal].replace('\"', '')
-                    new_design.add_node(pydot.Node(new_name, label=orig_label, terminal=orig_terminal))
-                else:
-                    new_design.add_node(pydot.Node(new_name, label=orig_label))
+                new_design.add_node(self.generate_a_node(new_name, orig_attr))
+
+                # if self.terminal in orig_attr:
+                #     orig_terminal = orig_attr[self.terminal].replace('\"', '')
+                #     new_design.add_node(pydot.Node(new_name, label=orig_label, terminal=orig_terminal))
+                # else:
+                #     new_design.add_node(pydot.Node(new_name, label=orig_label))
                 # new_design.add_node(new_name, label=orig_label)
                 replace_name_dict[orig_name] = new_name
 

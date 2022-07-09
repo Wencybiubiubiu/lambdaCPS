@@ -155,14 +155,24 @@ class GCNDataWrapper(ParamName):
 
     def get_single_sampled_data_dict(self, input_networkx_graph, num_of_steps, input_score):
 
-        output = {self.CNNT_MATRIX: nx.to_numpy_array(input_networkx_graph).tolist()}
+        node_list = input_networkx_graph.nodes()
+        output = {self.CNNT_MATRIX: nx.to_numpy_array(input_networkx_graph, nodelist=node_list).tolist()}
 
-        temp_size = 2
-        temp_feature_mat = []
-        for i in range(len(output[self.CNNT_MATRIX])):
-            temp_feature_mat.append(np.zeros(temp_size).tolist())
+        feature_matrix = []
+        for node in node_list:
+            cur_indicator = int(input_networkx_graph.nodes[node]['indicator'])
+            feature_matrix.append([cur_indicator])
+        # print(feature_matrix)
+        # exit()
+        #
+        # temp_size = 2
+        # temp_feature_mat = []
+        # for i in range(len(output[self.CNNT_MATRIX])):
+        #     temp_feature_mat.append(np.zeros(temp_size).tolist())
+        #
+        # output[self.FEAT_MATRIX] = temp_feature_mat
 
-        output[self.FEAT_MATRIX] = temp_feature_mat
+        output[self.FEAT_MATRIX] = feature_matrix
 
         output[self.STEP_TAG] = num_of_steps
         output[self.SCORE_TAG] = input_score
@@ -183,19 +193,27 @@ class GCN(torch.nn.Module):
         # self.conv1 = GCNConv(dataset.num_node_features, 32)
         # self.conv2 = GCNConv(32, dataset.num_classes)
         self.l1 = Linear(10, 1)
-        self.conv1 = GCNConv(2, 32)
+        # self.conv1 = GCNConv(2, 32)
+        self.conv1 = GCNConv(1, 32)
         self.conv2 = GCNConv(32, 10)
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
-
+        # print(x.shape)
+        # print(x)
         x = self.conv1(x, edge_index)
         x = F.relu(x)
+        # print(x)
         x = F.dropout(x, training=self.training)
         x = self.conv2(x, edge_index)
+        # print(x)
         x = torch.mean(x, dim=0)
+        # print(x)
+
         x = self.l1(x)
         # x = F.log_softmax(x, dim=0)
+        # print(x)
+        # exit()
         return x.unsqueeze(0)
 
 
@@ -216,7 +234,7 @@ class GCNModel:
         data = input_sample.to(self.device)
         self.optimizer.zero_grad()
         out = self.model(data)
-        print(out.squeeze(0), data.y)
+        # print(out.squeeze(0), data.y)
         loss = F.l1_loss(out.squeeze(0), data.y)
         loss.backward()
         self.optimizer.step()
@@ -230,8 +248,8 @@ class GCNModel:
 
             for i in range(len(training_set)):
 
-                if i % 100 == 0:
-                    print('The ' + str(i + 1) + 'th graph in epoch ' + str(epoch) + ' is finished.')
+                # if i % 100 == 0:
+                #     print('The ' + str(i + 1) + 'th graph in epoch ' + str(epoch) + ' is finished.')
                 data = training_set[i].to(self.device)
 
                 self.optimizer.zero_grad()

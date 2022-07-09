@@ -18,9 +18,23 @@ class Pipeline(ParamName):
         return
 
 
-    def reward(self, generated_design):
+    def reward_0(self, generated_design):
 
         return 200-len(generated_design.nodes())*10
+
+    def reward(self, generated_design):
+
+        return len(generated_design.nodes())*10
+
+    def reward_2(self, generated_design):
+
+        num = len(generated_design.nodes())
+
+        if 3 < num < 7:
+            score = 100
+        else:
+            score = 50
+        return score
 
     def execute(self):
 
@@ -117,12 +131,12 @@ class Pipeline(ParamName):
 
             # score calculating block
             # cur_score = random.randint(0, 100)
-            cur_score = self.reward(complete_design)
-            # print(cur_score)
-            # print(complete_design)
+            for j in range(len(designs_from_generating_process)):
+                cur_sample = designs_from_generating_process[j]
 
-            cur_tensor_data = data_wrapper.convert_networkx_to_tensor_dict(complete_design, len(designs_from_generating_process), cur_score)
-            sampling_dataset.append(cur_tensor_data)
+                cur_score = self.reward(cur_sample)
+                cur_tensor_data = data_wrapper.convert_networkx_to_tensor_dict(cur_sample, j, cur_score)
+                sampling_dataset.append(cur_tensor_data)
 
             # exit()
 
@@ -131,18 +145,18 @@ class Pipeline(ParamName):
 
             # # print(cur_tensor_data)
             # for j in range(training_epochs):
-            #     new_GCN.update_model_with_single_sample(cur_tensor_data)
+            #      new_GCN.update_model_with_single_sample(cur_tensor_data)
 
             new_GCN.training(training_epochs, sampling_dataset)
-
-        init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
-        designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
-                                                                                        self.reward,
-                                                                                        init_graph,
-                                                                                        max_generating_steps,
-                                                                                        decay_rate,
-                                                                                        graph_format)
-        print(designs_from_generating_process[-1])
+        #
+        # init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
+        # designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
+        #                                                                                 self.reward,
+        #                                                                                 init_graph,
+        #                                                                                 max_generating_steps,
+        #                                                                                 decay_rate,
+        #                                                                                 graph_format)
+        # print(designs_from_generating_process[-1])
         return
 
 
