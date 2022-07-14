@@ -1,0 +1,7 @@
+digraph "new-design" {
+n0 [indicator=20, label=environment];
+n1 [indicator=30, label=hinge];
+n2 [indicator=40, label=finger, terminal=T];
+n0 -> n1  [key=0, label=hinge_joint, terminal=T];
+n1 -> n2  [key=0, label=hinge_joint, terminal=T];
+}

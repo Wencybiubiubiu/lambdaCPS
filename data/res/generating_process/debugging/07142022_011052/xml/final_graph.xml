@@ -1,0 +1,259 @@
+<?xml version="1.0" ?>
+<all>
+	<directed type="bool">true</directed>
+	<multigraph type="bool">true</multigraph>
+	<graph type="dict">
+		<name type="str">new-design</name>
+	</graph>
+	<nodes type="list">
+		<item type="dict">
+			<label type="str">environment</label>
+			<indicator type="str">20</indicator>
+			<id type="str">n0</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n1</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n4</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n6</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n8</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n10</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n12</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n14</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n16</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n18</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n20</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n22</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n24</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n26</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n28</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n30</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n32</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n34</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n36</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n38</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n40</id>
+		</item>
+		<item type="dict">
+			<label type="str">finger</label>
+			<indicator type="str">40</indicator>
+			<id type="str">n41</id>
+		</item>
+		<item type="dict">
+			<label type="str">hinge</label>
+			<indicator type="str">30</indicator>
+			<id type="str">n42</id>
+		</item>
+	</nodes>
+	<links type="list">
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n0</source>
+			<target type="str">n1</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n1</source>
+			<target type="str">n4</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n4</source>
+			<target type="str">n6</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n6</source>
+			<target type="str">n8</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n8</source>
+			<target type="str">n10</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n10</source>
+			<target type="str">n12</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n12</source>
+			<target type="str">n14</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n14</source>
+			<target type="str">n16</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n16</source>
+			<target type="str">n18</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n18</source>
+			<target type="str">n20</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n20</source>
+			<target type="str">n22</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n22</source>
+			<target type="str">n24</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n24</source>
+			<target type="str">n26</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n26</source>
+			<target type="str">n28</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n28</source>
+			<target type="str">n30</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n30</source>
+			<target type="str">n32</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n32</source>
+			<target type="str">n34</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n34</source>
+			<target type="str">n36</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n36</source>
+			<target type="str">n38</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n38</source>
+			<target type="str">n40</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n40</source>
+			<target type="str">n42</target>
+			<key type="int">0</key>
+		</item>
+		<item type="dict">
+			<label type="str">hinge_joint</label>
+			<source type="str">n42</source>
+			<target type="str">n41</target>
+			<key type="int">0</key>
+		</item>
+	</links>
+</all>

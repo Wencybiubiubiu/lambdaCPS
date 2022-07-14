@@ -193,6 +193,7 @@ class GCN(torch.nn.Module):
         # self.conv1 = GCNConv(dataset.num_node_features, 32)
         # self.conv2 = GCNConv(32, dataset.num_classes)
         self.l1 = Linear(10, 1)
+        self.relu = torch.nn.ReLU()
         # self.conv1 = GCNConv(2, 32)
         self.conv1 = GCNConv(1, 32)
         self.conv2 = GCNConv(32, 10)
@@ -211,7 +212,7 @@ class GCN(torch.nn.Module):
         # print(x)
 
         x = self.l1(x)
-        # x = F.log_softmax(x, dim=0)
+        x = F.relu(x)
         # print(x)
         # exit()
         return x.unsqueeze(0)

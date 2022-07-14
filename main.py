@@ -30,7 +30,7 @@ class Pipeline(ParamName):
 
         num = len(generated_design.nodes())
 
-        if 3 < num < 7:
+        if 4 < num <= 7:
             score = 100
         else:
             score = 50
@@ -39,6 +39,7 @@ class Pipeline(ParamName):
     def execute(self):
 
         # training and generating parameters
+        global graph_format
         num_of_designs = 100
         max_generating_steps = 9
         num_of_simulations_for_each_design = 4
@@ -77,6 +78,7 @@ class Pipeline(ParamName):
         new_GCN = GCNModel(training_lr, training_weight_decay)
 
         init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
+        new_generator.set_searching_saving_flag()
 
 
         # Generating round (with a loop)
@@ -118,6 +120,10 @@ class Pipeline(ParamName):
             # To process networkx class object, refer to https://networkx.org/documentation/stable/reference/introduction.html
             complete_design = designs_from_generating_process[-1]
 
+            if i%10 == 0:
+                new_generator.generate_single_networkx_image(complete_design, new_generator.get_searching_folder_path(),
+                                                         'iteration_' + str(i))
+
             # print(complete_design)
 
             # controller and environment
@@ -148,15 +154,20 @@ class Pipeline(ParamName):
             #      new_GCN.update_model_with_single_sample(cur_tensor_data)
 
             new_GCN.training(training_epochs, sampling_dataset)
-        #
-        # init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
-        # designs_from_generating_process = new_generator.get_a_new_design_with_max_steps(new_GCN,
-        #                                                                                 self.reward,
-        #                                                                                 init_graph,
-        #                                                                                 max_generating_steps,
-        #                                                                                 decay_rate,
-        #                                                                                 graph_format)
-        # print(designs_from_generating_process[-1])
+
+        max_generating_steps = 20
+        init_graph, init_rule_list = new_parser.get_empty_sketch(init_sketch)
+        final_generation_process = new_generator.get_a_new_design_with_max_steps(new_GCN, self.reward,
+                                                                                        init_graph,
+                                                                                        max_generating_steps,
+                                                                                        decay_rate,
+                                                                                        graph_format)
+        final_graph = final_generation_process[-1]
+        new_generator.generate_single_networkx_image(final_graph, new_generator.get_searching_folder_path(),
+                                                     'Searching Result')
+        new_generator.save_as_dot(nx.drawing.nx_pydot.to_pydot(final_graph), 'final_graph')
+        new_generator.save_as_xml(final_graph, 'final_graph')
+        print(nx.drawing.nx_pydot.to_pydot(final_graph))
         return
 
 

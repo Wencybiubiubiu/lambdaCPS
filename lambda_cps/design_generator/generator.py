@@ -28,16 +28,64 @@ class DesignGenerator(RuleParam):
 
         self.execution_data_time = datetime.now().strftime("%m/%d/%Y, %H:%M:%S").replace('/', '').replace(':', '') \
             .replace(' ', '').replace(',', '_')
-        self.new_folder = self.image_dir + self.execution_data_time + '/'
+
+        basic_dir = self.image_dir + self.execution_data_time
+        self.process_folder = basic_dir + '/generating_process/'
+        self.search_folder = basic_dir + '/searching_process/'
+        self.dot_file_folder = basic_dir + '/dot/'
+        self.xml_file_folder = basic_dir + '/xml/'
 
         self.save_generating_process_flag = False
+        self.save_searching_process_flag = False
 
 
     def set_process_saving_flag(self):
 
         self.save_generating_process_flag = True
 
-        os.makedirs(self.new_folder, exist_ok=True)
+        os.makedirs(self.process_folder, exist_ok=True)
+
+    def set_searching_saving_flag(self):
+
+        self.save_searching_process_flag = True
+
+        os.makedirs(self.search_folder, exist_ok=True)
+
+    def get_searching_folder_path(self):
+        return self.search_folder
+
+    def generate_single_networkx_image(self, input_graph, filepath, filename):
+
+        labels = nx.get_node_attributes(input_graph, self.label)
+        pos_nodes = nx.spring_layout(input_graph)
+
+
+        plt.title(filename, fontsize=20)
+
+        pink_color = '#F2A7C6'
+        blue_color = '#0E76D2'
+        attr_text_offset = 0.08
+        nx.draw(input_graph, pos_nodes, with_labels=True, node_color=pink_color)
+
+        pos_attrs = {}
+        for node, coords in pos_nodes.items():
+            pos_attrs[node] = (coords[0], coords[1] + attr_text_offset)
+
+        custom_node_attrs = {}
+        for node, attr in labels.items():
+            custom_node_attrs[node] = attr
+
+        edge_labels = {}
+        for u, v, data in input_graph.edges(data=True):
+            edge_labels[u, v] = data[self.label]
+
+        nx.draw_networkx_labels(input_graph, pos_attrs, labels=custom_node_attrs, font_color=blue_color)
+
+        plt.plot()
+        plt.savefig(filepath + filename + ".png")
+        plt.close()
+
+        return
 
     def generate_networkx_image(self, input_graph, cur_rule, filepath, filename):
 
@@ -98,6 +146,22 @@ class DesignGenerator(RuleParam):
         plt.savefig(filepath + filename + ".png")
         plt.close()
 
+        return
+
+    def save_as_dot(self, input_dot_graph, filename):
+        os.makedirs(self.dot_file_folder, exist_ok=True)
+        input_dot_graph.write_raw(self.dot_file_folder + filename + '.dot')
+        return
+
+    def save_as_xml(self, input_dot_graph, filename):
+
+        os.makedirs(self.xml_file_folder, exist_ok=True)
+
+        from json2xml import json2xml
+        graph_json = nx.readwrite.json_graph.node_link_data(input_dot_graph)
+        xml_format = json2xml.Json2xml(graph_json).to_xml()
+        with open(self.xml_file_folder + filename + ".xml", "w") as f:
+            f.write(xml_format)
         return
 
     def get_all_possible_next_rules(self, prev_graph):
@@ -407,7 +471,7 @@ class DesignGenerator(RuleParam):
             generating_process.append(nx.drawing.nx_pydot.from_pydot(cur_graph))
 
         if self.save_generating_process_flag:
-            self.generate_networkx_image(cur_graph, self.init_sketch_tag, self.new_folder, "0")
+            self.generate_networkx_image(cur_graph, self.init_sketch_tag, self.process_folder, "0")
 
         node_count = len(input_graph.get_node_list())
         for i in range(max_steps):
@@ -426,7 +490,7 @@ class DesignGenerator(RuleParam):
             generating_process.append(nx.drawing.nx_pydot.from_pydot(cur_graph))
 
             if self.save_generating_process_flag:
-                self.generate_networkx_image(cur_graph, next_step[1], self.new_folder, str(i+1))
+                self.generate_networkx_image(cur_graph, next_step[1], self.process_folder, str(i+1))
 
         return generating_process
 
